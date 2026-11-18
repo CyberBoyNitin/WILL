@@ -358,6 +358,9 @@ Benchmark suites:
 | `inference` | latency, throughput, token evaluations and estimated MACs |
 | `ablation` | execution-mode and memory-subsystem comparison |
 
+All five suites have been run against the reported checkpoints; the run IDs are
+listed under [Reproducibility](#reproducibility).
+
 Start one through the console or the API:
 
 ```powershell
