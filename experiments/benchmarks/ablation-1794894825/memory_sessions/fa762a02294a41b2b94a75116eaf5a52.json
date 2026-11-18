@@ -1,0 +1,46 @@
+{
+  "session_id": "fa762a02294a41b2b94a75116eaf5a52",
+  "name": "benchmark-recall",
+  "created_at": 1794894827.2354863,
+  "documents": [
+    {
+      "doc_id": "b2f6a9661e814a28a2865b375976e642",
+      "filename": "recall.txt",
+      "kind": "text",
+      "pages": 1,
+      "size_bytes": 39,
+      "chunk_count": 1,
+      "created_at": 1794894827.456474
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "c00000",
+      "doc_id": "b2f6a9661e814a28a2865b375976e642",
+      "filename": "recall.txt",
+      "page": 1,
+      "token_count": 39,
+      "records": 4,
+      "preview": "K00=V100. K01=V101. K02=V102. K03=V103."
+    }
+  ],
+  "chunk_count": 1,
+  "record_count": 4,
+  "document_count": 1,
+  "updates": 1,
+  "state_updates": 1,
+  "adapt_seconds": 0.0724,
+  "memory_state_bytes": 16640,
+  "chunk_state_bytes": 2560,
+  "total_state_bytes": 19200,
+  "fast_parameters": 4160,
+  "memory_kind": "ttt_linear",
+  "memory_dim": 64,
+  "last_query": null,
+  "retrieval_counts": {
+    "lexical": 0,
+    "neural": 0,
+    "hybrid": 0
+  },
+  "capacity_chunks": 400
+}

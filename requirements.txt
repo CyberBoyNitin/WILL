@@ -1,0 +1,13 @@
+# Core runtime
+torch>=2.4
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.8
+PyYAML>=6.0
+pymupdf>=1.24
+psutil>=6.0
+python-multipart>=0.0.9
+
+# Tests and API smoke checks
+httpx>=0.27
+pytest>=8.0

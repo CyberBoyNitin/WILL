@@ -1,0 +1,39 @@
+# Reproduces the single-digit addition ACT checkpoint used in the report.
+# 581,765 parameters; 30 epochs; 818.9 s on a 2-thread CPU.
+profile: tiny
+
+model:
+  min_steps: 2
+  max_steps: 4
+  halt_epsilon: 0.05
+  memory_dim: 64
+  memory_kind: ttt_linear
+
+training:
+  task: arith_add
+  train_size: 1000
+  val_size: 150
+  test_size: 150
+  epochs: 30
+  batch_size: 16
+  lr: 0.0005
+  weight_decay: 0.01
+  grad_clip: 1.0
+  grad_accum: 1
+  optimizer: adamw
+  scheduler: cosine
+  warmup_steps: 20
+  ponder_lambda: 0.01
+  ponder_warmup_epochs: 10
+  memory_lambda: 0.0
+  mode: adaptive_soft
+  seed: 1337
+  eval_every: 1
+  early_stop_patience: 0
+  max_steps: 4
+  min_complexity: 1
+  max_complexity: 1
+  checkpoint_name: add-single-act
+
+server:
+  device: auto

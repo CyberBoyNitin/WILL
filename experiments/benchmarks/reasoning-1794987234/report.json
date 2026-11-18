@@ -1,0 +1,269 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "reasoning-1794987234",
+  "suite": "reasoning",
+  "created_at": 1794987236.8848035,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 2.26,
+    "process_rss_mb": 364.2,
+    "timestamp": 1794987236.8898852
+  },
+  "options": {
+    "task": "arith_add",
+    "split": "test",
+    "limit": 150,
+    "depths": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "modes": null,
+    "batch_size": 16,
+    "max_examples": 3,
+    "max_new_tokens": 12,
+    "repeats": 3,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "device": "auto",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": "add-single-act-final"
+  },
+  "duration_seconds": 2.862,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "add-single-act-final",
+  "dataset": {
+    "task": "arith_add",
+    "split": "test",
+    "size": 150,
+    "seed": 1337,
+    "min_complexity": 1,
+    "max_complexity": 1
+  },
+  "task": "arith_add",
+  "results": [
+    {
+      "mode": "fixed_depth",
+      "max_steps": 1,
+      "accuracy": 0.6733333333333333,
+      "correct": 101,
+      "count": 150,
+      "loss": 0.33403207028329857,
+      "perplexity": 1.3965879318269405,
+      "eval_mean_depth": 1.0,
+      "generation_mean_depth": 1.0,
+      "token_evaluations": 2321,
+      "generation_token_evaluations": 5486,
+      "estimated_macs": 411156480,
+      "estimated_flops": 822312960,
+      "generation_estimated_macs": 985576960,
+      "loss_seconds": 0.1805859999731183,
+      "generation_seconds": 0.3260309000033885,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "10",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 75.0,
+      "generation_compute_vs_max_fixed_pct": 75.0,
+      "accuracy_delta_vs_max_fixed": -0.32,
+      "generation_speedup_vs_max_fixed": 1.714,
+      "accuracy_per_million_macs": 0.0007
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 2,
+      "accuracy": 0.94,
+      "correct": 141,
+      "count": 150,
+      "loss": 0.1728323039340202,
+      "perplexity": 1.1886667536309272,
+      "eval_mean_depth": 2.0,
+      "generation_mean_depth": 2.0,
+      "token_evaluations": 4642,
+      "generation_token_evaluations": 10972,
+      "estimated_macs": 791429120,
+      "estimated_flops": 1582858240,
+      "generation_estimated_macs": 1884403200,
+      "loss_seconds": 0.15330680005718023,
+      "generation_seconds": 0.4205872999737039,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "10",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 50.0,
+      "generation_compute_vs_max_fixed_pct": 50.0,
+      "accuracy_delta_vs_max_fixed": -0.0533,
+      "generation_speedup_vs_max_fixed": 1.329,
+      "accuracy_per_million_macs": 0.0005
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 3,
+      "accuracy": 0.9933333333333333,
+      "correct": 149,
+      "count": 150,
+      "loss": 0.11174405617212671,
+      "perplexity": 1.1182266208141878,
+      "eval_mean_depth": 3.0,
+      "generation_mean_depth": 3.0,
+      "token_evaluations": 6963,
+      "generation_token_evaluations": 16458,
+      "estimated_macs": 1171701760,
+      "estimated_flops": 2343403520,
+      "generation_estimated_macs": 2783229440,
+      "loss_seconds": 0.20149630005471408,
+      "generation_seconds": 0.510346099967137,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "10",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 25.0,
+      "generation_compute_vs_max_fixed_pct": 25.0,
+      "accuracy_delta_vs_max_fixed": 0.0,
+      "generation_speedup_vs_max_fixed": 1.095,
+      "accuracy_per_million_macs": 0.0004
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 4,
+      "accuracy": 0.9933333333333333,
+      "correct": 149,
+      "count": 150,
+      "loss": 0.09090799559158777,
+      "perplexity": 1.0951682403170648,
+      "eval_mean_depth": 4.0,
+      "generation_mean_depth": 4.0,
+      "token_evaluations": 9284,
+      "generation_token_evaluations": 21944,
+      "estimated_macs": 1551974400,
+      "estimated_flops": 3103948800,
+      "generation_estimated_macs": 3682055680,
+      "loss_seconds": 0.2202584999613464,
+      "generation_seconds": 0.5587514000944793,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "10",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 0.0,
+      "generation_compute_vs_max_fixed_pct": 0.0,
+      "accuracy_delta_vs_max_fixed": 0.0,
+      "generation_speedup_vs_max_fixed": 1.0,
+      "accuracy_per_million_macs": 0.0003
+    }
+  ],
+  "summary": {
+    "best_accuracy": 0.9933333333333333,
+    "best_config": "fixed_depth@3",
+    "max_steps": 4,
+    "parameters": 581765
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\reasoning-1794987234\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\reasoning-1794987234\\summary.csv"
+  }
+}

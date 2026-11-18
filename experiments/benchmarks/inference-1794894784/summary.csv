@@ -1,0 +1,5 @@
+estimated_macs,generated_tokens,latency_ms_p50,latency_ms_p95,max_new_tokens,max_steps,mean_depth,mode,process_rss_mb,prompt_tokens,repeats,token_evaluations,tokens_per_second
+17618944,1,31.795,31.795,4,2,2.0,fixed_depth,223.2,32,1,64,31.451
+35002368,1,45.972,45.972,4,2,2.0,fixed_depth,223.9,64,1,128,21.752
+17946624,1,127.448,127.448,4,4,2.0606,adaptive_hard,225.0,32,1,66,7.846
+35330048,1,112.732,112.732,4,4,2.0308,adaptive_hard,225.0,64,1,130,8.871

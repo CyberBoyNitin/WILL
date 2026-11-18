@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+*.tsbuildinfo
+.coverage
+coverage/
+htmlcov/
+build/
+dist/
+
+# Generated runtime state
+data/
+checkpoints/
+*.db
+*.sqlite
+*.sqlite3
+training_*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+frontend/.env.local
+frontend/.env.*.local
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

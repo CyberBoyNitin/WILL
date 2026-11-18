@@ -1,0 +1,45 @@
+# Explicit non-profile architecture for experiments. This file demonstrates
+# overriding the tiny defaults without relying on a named profile.
+profile: experimental
+
+model:
+  hidden_dim: 192
+  n_heads: 6
+  context_layers: 2
+  context_ff_mult: 3
+  ff_mult: 3
+  max_seq_len: 256
+  dropout: 0.1
+  min_steps: 2
+  max_steps: 6
+  halt_epsilon: 0.05
+  memory_dim: 96
+  memory_kind: ttt_mlp
+  memory_inner_steps: 2
+  memory_inner_lr: 0.03
+
+training:
+  task: mixture
+  train_size: 4000
+  val_size: 400
+  test_size: 400
+  epochs: 20
+  batch_size: 24
+  lr: 0.0002
+  weight_decay: 0.01
+  grad_clip: 1.0
+  optimizer: adamw
+  scheduler: cosine
+  warmup_steps: 40
+  ponder_lambda: 0.01
+  ponder_warmup_epochs: 5
+  mode: adaptive_soft
+  seed: 1337
+  eval_every: 1
+  max_steps: 6
+  min_complexity: 1
+  max_complexity: 3
+  checkpoint_name: mixture-experimental
+
+server:
+  device: auto

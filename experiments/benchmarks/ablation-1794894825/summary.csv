@@ -1,0 +1,4 @@
+accuracy,accuracy_delta_vs_max_fixed,accuracy_per_million_macs,compute_vs_max_fixed_pct,correct,count,estimated_flops,estimated_macs,eval_mean_depth,generation_compute_vs_max_fixed_pct,generation_estimated_macs,generation_mean_depth,generation_seconds,generation_speedup_vs_max_fixed,generation_token_evaluations,loss,loss_seconds,max_steps,mode,perplexity,token_evaluations
+0.7,-0.25,0.0048,50.0,14,20,114917376,57458688,1.0,50.0,146456064,1.0,0.11580899998079985,1.61,788,0.3002228961800629,0.06102570006623864,1,fixed_depth,1.3501597194826476,313
+0.95,0.0,0.0034,0.0,19,20,217481216,108740608,2.0,0.0,275561984,2.0,0.18648469995241612,1.0,1576,0.15817135684895064,0.05381900002248585,2,fixed_depth,1.1713668992519501,626
+1.0,0.05,0.0033,-10.22,20,20,238452736,119226368,2.204215383529663,-9.77,300793344,2.193373698108601,0.36641879996750504,0.509,1730,0.09269367636374708,0.09953359991777688,4,adaptive_hard,1.0971256082831347,690

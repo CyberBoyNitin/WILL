@@ -1,0 +1,238 @@
+{
+  "fixed_depth@1": {
+    "loss": {
+      "loss": 0.3883622033255441,
+      "perplexity": 1.474563779479541,
+      "ponder_cost": 1.0,
+      "mean_depth": 1.0,
+      "tokens": 371,
+      "sequences": 150
+    },
+    "generation": {
+      "accuracy": 0.64,
+      "correct": 96,
+      "count": 150,
+      "examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "12",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "16",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "12",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "13",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 4 + 7 =",
+          "gold": "11",
+          "prediction": "12",
+          "correct": false,
+          "complexity": 1
+        }
+      ]
+    }
+  },
+  "fixed_depth@2": {
+    "loss": {
+      "loss": 0.23960968490559456,
+      "perplexity": 1.2707530594114675,
+      "ponder_cost": 2.0,
+      "mean_depth": 2.0,
+      "tokens": 371,
+      "sequences": 150
+    },
+    "generation": {
+      "accuracy": 0.8266666666666667,
+      "correct": 124,
+      "count": 150,
+      "examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "13",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 4 + 7 =",
+          "gold": "11",
+          "prediction": "12",
+          "correct": false,
+          "complexity": 1
+        }
+      ]
+    }
+  },
+  "fixed_depth@3": {
+    "loss": {
+      "loss": 0.18149431825005463,
+      "perplexity": 1.1990077242282888,
+      "ponder_cost": 3.0,
+      "mean_depth": 3.0,
+      "tokens": 371,
+      "sequences": 150
+    },
+    "generation": {
+      "accuracy": 0.8733333333333333,
+      "correct": 131,
+      "count": 150,
+      "examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "12",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 4 + 7 =",
+          "gold": "11",
+          "prediction": "11",
+          "correct": true,
+          "complexity": 1
+        }
+      ]
+    }
+  },
+  "fixed_depth@4": {
+    "loss": {
+      "loss": 0.16111027198339087,
+      "perplexity": 1.1748145107975365,
+      "ponder_cost": 4.0,
+      "mean_depth": 4.0,
+      "tokens": 371,
+      "sequences": 150
+    },
+    "generation": {
+      "accuracy": 0.96,
+      "correct": 144,
+      "count": 150,
+      "examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "10",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "12",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 4 + 7 =",
+          "gold": "11",
+          "prediction": "11",
+          "correct": true,
+          "complexity": 1
+        }
+      ]
+    }
+  }
+}

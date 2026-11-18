@@ -1,0 +1,512 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "memory_recall-1794893574",
+  "suite": "memory_recall",
+  "created_at": 1794893577.7262104,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 1.21,
+    "process_rss_mb": 226.9,
+    "timestamp": 1794893577.8613746
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": null,
+    "depths": null,
+    "modes": null,
+    "batch_size": 16,
+    "max_examples": 5,
+    "max_new_tokens": 12,
+    "repeats": 3,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "device": "cpu",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": "add-single-act-final"
+  },
+  "duration_seconds": 3.323,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "add-single-act-final",
+  "dataset": {
+    "kind": "synthetic_key_value",
+    "records": 20,
+    "text_preview": "K00=V100. K01=V101. K02=V102. K03=V103. K04=V104. K05=V105. K06=V106. K07=V107. K08=V108. K09=V109. K10=V110. K11=V111. K12=V112. K13=V113. K14=V114. K15=V115. K16=V116. K17=V117. K18=V118. K19=V119."
+  },
+  "ingest": {
+    "session_id": "52ecdf6e7dc442608bddbacc1d74dd55",
+    "document_id": "a0cc2f46b7d84d31b7997aa34caad9a7",
+    "chunks_added": 2,
+    "total_chunks": 2,
+    "pairs_seen": 37,
+    "updates": 3,
+    "total_updates": 3,
+    "adapt_seconds": 0.3756,
+    "state_bytes": 29440,
+    "memory_state_bytes": 16640
+  },
+  "ingest_seconds": 0.3765,
+  "results": [
+    {
+      "adapt_round": 0,
+      "neural_recall_at_1": 0.4,
+      "lexical_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 0.95,
+      "session_updates": 3,
+      "state_updates": 3,
+      "adapt_seconds": 0.3678,
+      "state_bytes": 29440,
+      "neural_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V109",
+          "correct": false,
+          "score": 0.877164
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V119",
+          "correct": false,
+          "score": 0.836204
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V109",
+          "correct": false,
+          "score": 0.859002
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.825915
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.874543
+        }
+      ],
+      "lexical_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 2.639057
+        }
+      ]
+    },
+    {
+      "adapt_round": 1,
+      "neural_recall_at_1": 0.8,
+      "lexical_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 0.95,
+      "session_updates": 4,
+      "state_updates": 4,
+      "adapt_seconds": 0.3749,
+      "state_bytes": 29440,
+      "neural_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.875828
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V111",
+          "correct": false,
+          "score": 0.706214
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.734829
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.731762
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.764984
+        }
+      ],
+      "lexical_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 2.639057
+        }
+      ]
+    },
+    {
+      "adapt_round": 5,
+      "neural_recall_at_1": 0.95,
+      "lexical_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 0.95,
+      "session_updates": 8,
+      "state_updates": 8,
+      "adapt_seconds": 0.3985,
+      "state_bytes": 29440,
+      "neural_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.836975
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 0.700301
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.768155
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.793428
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.821363
+        }
+      ],
+      "lexical_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 2.639057
+        }
+      ]
+    },
+    {
+      "adapt_round": 10,
+      "neural_recall_at_1": 0.95,
+      "lexical_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 0.95,
+      "session_updates": 13,
+      "state_updates": 13,
+      "adapt_seconds": 0.4273,
+      "state_bytes": 29440,
+      "neural_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.902958
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V110",
+          "correct": false,
+          "score": 0.869611
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.911817
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.906211
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.945778
+        }
+      ],
+      "lexical_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 2.639057
+        }
+      ]
+    },
+    {
+      "adapt_round": 20,
+      "neural_recall_at_1": 0.95,
+      "lexical_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 0.95,
+      "session_updates": 23,
+      "state_updates": 23,
+      "adapt_seconds": 0.4752,
+      "state_bytes": 29440,
+      "neural_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.910703
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V110",
+          "correct": false,
+          "score": 0.880588
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.917232
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.907541
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.946896
+        }
+      ],
+      "lexical_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 2.639057
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "neural_recall_at_1": 0.95,
+    "lexical_recall_at_1": 1.0,
+    "hybrid_recall_at_1": 0.95,
+    "records": 20,
+    "adapt_rounds": 4,
+    "fast_state_bytes": 29440,
+    "slow_parameters": 581765
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\memory_recall-1794893574\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\memory_recall-1794893574\\summary.csv"
+  }
+}

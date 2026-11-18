@@ -1,0 +1,139 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "inference-1794894784",
+  "suite": "inference",
+  "created_at": 1794894787.5750852,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 1.5,
+    "process_rss_mb": 225.6,
+    "timestamp": 1794894788.3373384
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": null,
+    "depths": [
+      2
+    ],
+    "modes": [
+      "adaptive_hard"
+    ],
+    "batch_size": 16,
+    "max_examples": 5,
+    "max_new_tokens": 4,
+    "repeats": 1,
+    "prompt_lengths": [
+      32,
+      64
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "device": "cpu",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": "add-single-act-final"
+  },
+  "duration_seconds": 3.473,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "add-single-act-final",
+  "results": [
+    {
+      "mode": "fixed_depth",
+      "max_steps": 2,
+      "prompt_tokens": 32,
+      "max_new_tokens": 4,
+      "generated_tokens": 1,
+      "mean_depth": 2.0,
+      "token_evaluations": 64,
+      "estimated_macs": 17618944,
+      "latency_ms_p50": 31.795,
+      "latency_ms_p95": 31.795,
+      "tokens_per_second": 31.451,
+      "repeats": 1,
+      "process_rss_mb": 223.2
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 2,
+      "prompt_tokens": 64,
+      "max_new_tokens": 4,
+      "generated_tokens": 1,
+      "mean_depth": 2.0,
+      "token_evaluations": 128,
+      "estimated_macs": 35002368,
+      "latency_ms_p50": 45.972,
+      "latency_ms_p95": 45.972,
+      "tokens_per_second": 21.752,
+      "repeats": 1,
+      "process_rss_mb": 223.9
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 4,
+      "prompt_tokens": 32,
+      "max_new_tokens": 4,
+      "generated_tokens": 1,
+      "mean_depth": 2.0606,
+      "token_evaluations": 66,
+      "estimated_macs": 17946624,
+      "latency_ms_p50": 127.448,
+      "latency_ms_p95": 127.448,
+      "tokens_per_second": 7.846,
+      "repeats": 1,
+      "process_rss_mb": 225.0
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 4,
+      "prompt_tokens": 64,
+      "max_new_tokens": 4,
+      "generated_tokens": 1,
+      "mean_depth": 2.0308,
+      "token_evaluations": 130,
+      "estimated_macs": 35330048,
+      "latency_ms_p50": 112.732,
+      "latency_ms_p95": 112.732,
+      "tokens_per_second": 8.871,
+      "repeats": 1,
+      "process_rss_mb": 225.0
+    }
+  ],
+  "summary": {
+    "configs": 2,
+    "prompt_lengths": [
+      32,
+      64
+    ],
+    "repeats": 1,
+    "fastest_p50_ms": 31.795,
+    "slowest_p50_ms": 127.448,
+    "parameters": 581765
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\inference-1794894784\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\inference-1794894784\\summary.csv"
+  }
+}

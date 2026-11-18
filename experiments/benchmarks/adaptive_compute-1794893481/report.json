@@ -1,0 +1,450 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "adaptive_compute-1794893481",
+  "suite": "adaptive_compute",
+  "created_at": 1794893487.9957051,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 1.34,
+    "process_rss_mb": 233.3,
+    "timestamp": 1794893488.1272838
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": 150,
+    "depths": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "modes": [
+      "adaptive_soft",
+      "adaptive_hard"
+    ],
+    "batch_size": 16,
+    "max_examples": 5,
+    "max_new_tokens": 12,
+    "repeats": 3,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "device": "auto",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": "add-single-d4-final"
+  },
+  "duration_seconds": 7.108,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "add-single-d4-final",
+  "dataset": {
+    "task": "arith_add",
+    "split": "test",
+    "size": 150,
+    "seed": 1337,
+    "min_complexity": 1,
+    "max_complexity": 1
+  },
+  "task": "arith_add",
+  "results": [
+    {
+      "mode": "fixed_depth",
+      "max_steps": 1,
+      "accuracy": 0.64,
+      "correct": 96,
+      "count": 150,
+      "loss": 0.3883622033255441,
+      "perplexity": 1.474563779479541,
+      "eval_mean_depth": 1.0,
+      "generation_mean_depth": 1.0,
+      "token_evaluations": 2321,
+      "generation_token_evaluations": 5519,
+      "estimated_macs": 411156480,
+      "estimated_flops": 822312960,
+      "generation_estimated_macs": 990983680,
+      "loss_seconds": 0.21263409999664873,
+      "generation_seconds": 0.4200593000277877,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "12",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "16",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "12",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "13",
+          "correct": false,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 75.0,
+      "generation_compute_vs_max_fixed_pct": 74.85,
+      "accuracy_delta_vs_max_fixed": -0.32,
+      "generation_speedup_vs_max_fixed": 1.99,
+      "accuracy_per_million_macs": 0.0006
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 2,
+      "accuracy": 0.8266666666666667,
+      "correct": 124,
+      "count": 150,
+      "loss": 0.23960968490559456,
+      "perplexity": 1.2707530594114675,
+      "eval_mean_depth": 2.0,
+      "generation_mean_depth": 2.0,
+      "token_evaluations": 4642,
+      "generation_token_evaluations": 11068,
+      "estimated_macs": 791429120,
+      "estimated_flops": 1582858240,
+      "generation_estimated_macs": 1900131840,
+      "loss_seconds": 0.19890750001650304,
+      "generation_seconds": 0.6628312000539154,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "13",
+          "correct": false,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 50.0,
+      "generation_compute_vs_max_fixed_pct": 49.56,
+      "accuracy_delta_vs_max_fixed": -0.1333,
+      "generation_speedup_vs_max_fixed": 1.261,
+      "accuracy_per_million_macs": 0.0004
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 3,
+      "accuracy": 0.8733333333333333,
+      "correct": 131,
+      "count": 150,
+      "loss": 0.18149431825005463,
+      "perplexity": 1.1990077242282888,
+      "eval_mean_depth": 3.0,
+      "generation_mean_depth": 3.0,
+      "token_evaluations": 6963,
+      "generation_token_evaluations": 16602,
+      "estimated_macs": 1171701760,
+      "estimated_flops": 2343403520,
+      "generation_estimated_macs": 2806822400,
+      "loss_seconds": 0.2571864000055939,
+      "generation_seconds": 0.7191337000112981,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "12",
+          "correct": true,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 25.0,
+      "generation_compute_vs_max_fixed_pct": 24.34,
+      "accuracy_delta_vs_max_fixed": -0.0867,
+      "generation_speedup_vs_max_fixed": 1.162,
+      "accuracy_per_million_macs": 0.0003
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 4,
+      "accuracy": 0.96,
+      "correct": 144,
+      "count": 150,
+      "loss": 0.16111027198339087,
+      "perplexity": 1.1748145107975365,
+      "eval_mean_depth": 4.0,
+      "generation_mean_depth": 4.0,
+      "token_evaluations": 9284,
+      "generation_token_evaluations": 21944,
+      "estimated_macs": 1551974400,
+      "estimated_flops": 3103948800,
+      "generation_estimated_macs": 3682055680,
+      "loss_seconds": 0.3997215999988839,
+      "generation_seconds": 0.8357519001001492,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "10",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "12",
+          "correct": true,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 0.0,
+      "generation_compute_vs_max_fixed_pct": 0.0,
+      "accuracy_delta_vs_max_fixed": 0.0,
+      "generation_speedup_vs_max_fixed": 1.0,
+      "accuracy_per_million_macs": 0.0003
+    },
+    {
+      "mode": "adaptive_soft",
+      "max_steps": 4,
+      "accuracy": 0.92,
+      "correct": 138,
+      "count": 150,
+      "loss": 0.1811974543445515,
+      "perplexity": 1.1986518349405015,
+      "eval_mean_depth": 2.9426071802775065,
+      "generation_mean_depth": 2.942553726489332,
+      "token_evaluations": 9284,
+      "generation_token_evaluations": 21944,
+      "estimated_macs": 1551974400,
+      "estimated_flops": 3103948800,
+      "generation_estimated_macs": 3682055680,
+      "loss_seconds": 0.4218608000082895,
+      "generation_seconds": 1.1334855000022799,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "12",
+          "correct": true,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 0.0,
+      "generation_compute_vs_max_fixed_pct": 0.0,
+      "accuracy_delta_vs_max_fixed": -0.04,
+      "generation_speedup_vs_max_fixed": 0.737,
+      "accuracy_per_million_macs": 0.0002
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 4,
+      "accuracy": 0.96,
+      "correct": 144,
+      "count": 150,
+      "loss": 0.16111027391130392,
+      "perplexity": 1.1748145130624768,
+      "eval_mean_depth": 4.0,
+      "generation_mean_depth": 4.0,
+      "token_evaluations": 9284,
+      "generation_token_evaluations": 21944,
+      "estimated_macs": 1551974400,
+      "estimated_flops": 3103948800,
+      "generation_estimated_macs": 3682055680,
+      "loss_seconds": 0.4363236000062898,
+      "generation_seconds": 1.128546699997969,
+      "generation_examples": [
+        {
+          "prompt": "calc 9 + 1 =",
+          "gold": "10",
+          "prediction": "10",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 7 + 6 =",
+          "gold": "13",
+          "prediction": "13",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 9 + 8 =",
+          "gold": "17",
+          "prediction": "17",
+          "correct": true,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 5 + 5 =",
+          "gold": "10",
+          "prediction": "11",
+          "correct": false,
+          "complexity": 1
+        },
+        {
+          "prompt": "calc 6 + 6 =",
+          "gold": "12",
+          "prediction": "12",
+          "correct": true,
+          "complexity": 1
+        }
+      ],
+      "compute_vs_max_fixed_pct": 0.0,
+      "generation_compute_vs_max_fixed_pct": 0.0,
+      "accuracy_delta_vs_max_fixed": 0.0,
+      "generation_speedup_vs_max_fixed": 0.741,
+      "accuracy_per_million_macs": 0.0003
+    }
+  ],
+  "summary": {
+    "best_fixed_accuracy": 0.96,
+    "best_fixed_config": "fixed_depth@4",
+    "best_adaptive_accuracy": 0.96,
+    "best_adaptive_config": "adaptive_hard@4",
+    "max_steps": 4,
+    "parameters": 581765
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\adaptive_compute-1794893481\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\adaptive_compute-1794893481\\summary.csv"
+  }
+}

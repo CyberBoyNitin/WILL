@@ -1,0 +1,35 @@
+# Larger profile for GPU machines. Not the checkpoint reported in the README.
+profile: standard
+
+model:
+  min_steps: 2
+  max_steps: 8
+  halt_epsilon: 0.05
+  memory_dim: 128
+  memory_kind: ttt_linear
+
+training:
+  task: arith_add
+  train_size: 4000
+  val_size: 400
+  test_size: 400
+  epochs: 40
+  batch_size: 32
+  lr: 0.0003
+  weight_decay: 0.01
+  grad_clip: 1.0
+  optimizer: adamw
+  scheduler: cosine
+  warmup_steps: 40
+  ponder_lambda: 0.01
+  ponder_warmup_epochs: 8
+  mode: adaptive_soft
+  seed: 1337
+  eval_every: 1
+  max_steps: 8
+  min_complexity: 1
+  max_complexity: 2
+  checkpoint_name: add-standard-act
+
+server:
+  device: auto
