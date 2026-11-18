@@ -223,7 +223,10 @@ python scripts/train.py --task arith_add --min-complexity 1 --max-complexity 1 `
 
 Checkpoints are written under `checkpoints/`; metadata is stored next to each
 checkpoint. Training configs are saved inside the checkpoint so evaluation and
-benchmark reports can be traced back to the exact run.
+benchmark reports can be traced back to the exact run. The two reference
+checkpoints used by the report (`add-single-act-final` and
+`add-single-d4-final`) are tracked so a fresh clone can run the console
+immediately; newly trained checkpoints are ignored by git.
 
 ### 3. Evaluate a checkpoint
 
