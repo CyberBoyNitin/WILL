@@ -1,0 +1,113 @@
+{
+  "session_id": "3caac2b9ea18425080b07a3be88c5402",
+  "name": "lead-continual",
+  "created_at": 1795329214.5217404,
+  "format_version": 2,
+  "state_version": 2,
+  "weight_norm": 15.877929,
+  "consolidations": 3,
+  "documents": [
+    {
+      "doc_id": "084617e27d6a493abe5ff4ec29ad26f7",
+      "filename": "wave_0.txt",
+      "kind": "text",
+      "pages": 1,
+      "size_bytes": 199,
+      "chunk_count": 2,
+      "created_at": 1795329214.5558724
+    },
+    {
+      "doc_id": "eed0c9c39fd849e98e80cba3329699ae",
+      "filename": "wave_1.txt",
+      "kind": "text",
+      "pages": 1,
+      "size_bytes": 199,
+      "chunk_count": 2,
+      "created_at": 1795329215.378059
+    },
+    {
+      "doc_id": "434583392322433796d7a7d29e643cd0",
+      "filename": "wave_2.txt",
+      "kind": "text",
+      "pages": 1,
+      "size_bytes": 199,
+      "chunk_count": 2,
+      "created_at": 1795329216.9761267
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "c00000",
+      "doc_id": "084617e27d6a493abe5ff4ec29ad26f7",
+      "filename": "wave_0.txt",
+      "page": 1,
+      "token_count": 192,
+      "records": 19,
+      "preview": "K00=V100. K01=V101. K02=V102. K03=V103. K04=V104. K05=V105. K06=V106. K07=V107. K08=V108. K09=V109. K10=V110. K11=V111. K12=V112. K13=V113. K14=V114. K15=V115. K16=V116. K17=V117. K18=V118. K1"
+    },
+    {
+      "chunk_id": "c00001",
+      "doc_id": "084617e27d6a493abe5ff4ec29ad26f7",
+      "filename": "wave_0.txt",
+      "page": 1,
+      "token_count": 39,
+      "records": 4,
+      "preview": "K16=V116. K17=V117. K18=V118. K19=V119."
+    },
+    {
+      "chunk_id": "c00000",
+      "doc_id": "eed0c9c39fd849e98e80cba3329699ae",
+      "filename": "wave_1.txt",
+      "page": 1,
+      "token_count": 192,
+      "records": 19,
+      "preview": "K20=V120. K21=V121. K22=V122. K23=V123. K24=V124. K25=V125. K26=V126. K27=V127. K28=V128. K29=V129. K30=V130. K31=V131. K32=V132. K33=V133. K34=V134. K35=V135. K36=V136. K37=V137. K38=V138. K3"
+    },
+    {
+      "chunk_id": "c00001",
+      "doc_id": "eed0c9c39fd849e98e80cba3329699ae",
+      "filename": "wave_1.txt",
+      "page": 1,
+      "token_count": 39,
+      "records": 4,
+      "preview": "K36=V136. K37=V137. K38=V138. K39=V139."
+    },
+    {
+      "chunk_id": "c00000",
+      "doc_id": "434583392322433796d7a7d29e643cd0",
+      "filename": "wave_2.txt",
+      "page": 1,
+      "token_count": 192,
+      "records": 19,
+      "preview": "K40=V140. K41=V141. K42=V142. K43=V143. K44=V144. K45=V145. K46=V146. K47=V147. K48=V148. K49=V149. K50=V150. K51=V151. K52=V152. K53=V153. K54=V154. K55=V155. K56=V156. K57=V157. K58=V158. K5"
+    },
+    {
+      "chunk_id": "c00001",
+      "doc_id": "434583392322433796d7a7d29e643cd0",
+      "filename": "wave_2.txt",
+      "page": 1,
+      "token_count": 39,
+      "records": 4,
+      "preview": "K56=V156. K57=V157. K58=V158. K59=V159."
+    }
+  ],
+  "chunk_count": 6,
+  "record_count": 69,
+  "document_count": 3,
+  "updates": 9,
+  "state_updates": 9,
+  "adapt_seconds": 0.7093,
+  "memory_state_bytes": 16640,
+  "chunk_state_bytes": 38400,
+  "total_state_bytes": 55040,
+  "fast_parameters": 4160,
+  "memory_kind": "ttt_linear",
+  "memory_dim": 64,
+  "last_query": null,
+  "retrieval_counts": {
+    "lexical": 0,
+    "neural": 0,
+    "hybrid": 0
+  },
+  "capacity_chunks": 400
+}

@@ -1,0 +1,29 @@
+{
+  "threads": 1,
+  "priority": "high",
+  "warmup": 5,
+  "runs": 50,
+  "slow_parameters": 581765,
+  "results": [
+    {
+      "config": "fixed_depth@4",
+      "accuracy_pct": 99.0,
+      "mean_depth": 4.0,
+      "token_evaluations": 12384,
+      "p50_ms": 322.3297,
+      "p95_ms": 389.2829,
+      "runs": 50,
+      "speedup_vs_fixed4_p50": 1.0
+    },
+    {
+      "config": "adaptive_hard@3",
+      "accuracy_pct": 99.0,
+      "mean_depth": 2.087682,
+      "token_evaluations": 6481,
+      "p50_ms": 266.0106,
+      "p95_ms": 319.5768,
+      "runs": 50,
+      "speedup_vs_fixed4_p50": 1.2117
+    }
+  ]
+}

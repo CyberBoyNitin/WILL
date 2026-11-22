@@ -1,0 +1,30 @@
+{
+  "session_id": "6e419917f7f142be9e431a25f5271229",
+  "name": "lead-synergy",
+  "created_at": 1795329224.9604685,
+  "format_version": 2,
+  "state_version": 2,
+  "weight_norm": 2.738967,
+  "consolidations": 0,
+  "documents": [],
+  "chunks": [],
+  "chunk_count": 0,
+  "record_count": 0,
+  "document_count": 0,
+  "updates": 1,
+  "state_updates": 1,
+  "adapt_seconds": 0.0092,
+  "memory_state_bytes": 16640,
+  "chunk_state_bytes": 0,
+  "total_state_bytes": 16640,
+  "fast_parameters": 4160,
+  "memory_kind": "ttt_linear",
+  "memory_dim": 64,
+  "last_query": null,
+  "retrieval_counts": {
+    "lexical": 0,
+    "neural": 0,
+    "hybrid": 0
+  },
+  "capacity_chunks": 400
+}

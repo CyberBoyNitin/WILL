@@ -1,0 +1,93 @@
+{
+  "suite_report_id": "adaptive_compute-88331dda0199",
+  "dataset": {
+    "task": "arith_add",
+    "split": "test",
+    "size": 200,
+    "seed": 1337,
+    "min_complexity": 1,
+    "max_complexity": 1
+  },
+  "slow_parameters": 581765,
+  "warmup_policy": "suite performs one full warmup pass before the 50 timed passes",
+  "results": [
+    {
+      "config": "fixed_depth@1",
+      "accuracy_pct": 67.0,
+      "mean_depth": 1.0,
+      "token_evaluations": 3096,
+      "estimated_macs": 620024576,
+      "p50_seconds": 0.3563,
+      "p95_seconds": 0.4633,
+      "runs": 50,
+      "speedup_vs_fixed4_p50": 1.8428,
+      "generated_tokens": 496,
+      "tokens_per_second_p50": 1392.24
+    },
+    {
+      "config": "fixed_depth@2",
+      "accuracy_pct": 93.5,
+      "mean_depth": 2.0,
+      "token_evaluations": 6192,
+      "estimated_macs": 1127273216,
+      "p50_seconds": 0.6711,
+      "p95_seconds": 1.6627,
+      "runs": 50,
+      "speedup_vs_fixed4_p50": 0.9783,
+      "generated_tokens": 496,
+      "tokens_per_second_p50": 739.13
+    },
+    {
+      "config": "fixed_depth@3",
+      "accuracy_pct": 99.0,
+      "mean_depth": 3.0,
+      "token_evaluations": 9288,
+      "estimated_macs": 1634521856,
+      "p50_seconds": 0.6251,
+      "p95_seconds": 2.0005,
+      "runs": 50,
+      "speedup_vs_fixed4_p50": 1.0502,
+      "generated_tokens": 496,
+      "tokens_per_second_p50": 793.47
+    },
+    {
+      "config": "fixed_depth@4",
+      "accuracy_pct": 99.0,
+      "mean_depth": 4.0,
+      "token_evaluations": 12384,
+      "estimated_macs": 2141770496,
+      "p50_seconds": 0.6565,
+      "p95_seconds": 0.9944,
+      "runs": 50,
+      "speedup_vs_fixed4_p50": 1.0,
+      "generated_tokens": 496,
+      "tokens_per_second_p50": 755.51
+    },
+    {
+      "config": "adaptive_soft@3",
+      "accuracy_pct": 99.0,
+      "mean_depth": 2.0737904499393203,
+      "token_evaluations": 9288,
+      "estimated_macs": 1634521856,
+      "p50_seconds": 1.124,
+      "p95_seconds": 2.6381,
+      "runs": 50,
+      "speedup_vs_fixed4_p50": 0.5841,
+      "generated_tokens": 496,
+      "tokens_per_second_p50": 441.28
+    },
+    {
+      "config": "adaptive_hard@3",
+      "accuracy_pct": 99.0,
+      "mean_depth": 2.0876819899878645,
+      "token_evaluations": 6481,
+      "estimated_macs": 1174622976,
+      "p50_seconds": 1.1284,
+      "p95_seconds": 4.0007,
+      "runs": 50,
+      "speedup_vs_fixed4_p50": 0.5818,
+      "generated_tokens": 496,
+      "tokens_per_second_p50": 439.56
+    }
+  ]
+}
