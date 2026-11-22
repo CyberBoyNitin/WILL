@@ -46,11 +46,11 @@ def test_hard_mode_actually_skips_positions(tiny_model, tokenizer, monkeypatch):
     seen_rows = []
     original = tiny_model.recurrent_block.forward
 
-    def wrapped(hidden, context, step_emb):
+    def wrapped(hidden, context, step_emb, **kwargs):
         seen_rows.append(
             hidden.shape[0] * hidden.shape[1] if hidden.ndim == 3 else hidden.shape[0]
         )
-        return original(hidden, context, step_emb)
+        return original(hidden, context, step_emb, **kwargs)
 
     monkeypatch.setattr(tiny_model.recurrent_block, "forward", wrapped)
     logits, stats = tiny_model(ids, mask, mode="adaptive_hard", max_steps=4)
@@ -61,20 +61,54 @@ def test_hard_mode_actually_skips_positions(tiny_model, tokenizer, monkeypatch):
     assert stats["mode"] == "adaptive_hard"
 
 
+def test_hard_mode_cap_between_min_and_max_steps(tiny_model, tokenizer):
+    # Regression: min_steps=2 with a 3-step inference cap leaves exactly one
+    # halting step, so the gate projection must still be computed.
+    tiny_model.cfg.min_steps = 2
+    ids, mask = _batch(tokenizer, size=2, length=10)
+    logits, stats = tiny_model(ids, mask, mode="adaptive_hard", max_steps=3)
+    assert logits.shape == (2, 10, 260)
+    assert stats["mode"] == "adaptive_hard"
+    assert stats["steps_configured"] == 3
+    assert stats["total_token_evaluations"] <= 2 * 10 * 3
+
+
 def test_soft_mode_runs_all_positions(tiny_model, tokenizer, monkeypatch):
     ids, mask = _batch(tokenizer, size=2, length=10)
     seen_rows = []
     original = tiny_model.recurrent_block.forward
 
-    def wrapped(hidden, context, step_emb):
+    def wrapped(hidden, context, step_emb, **kwargs):
         seen_rows.append(hidden.shape[0] * hidden.shape[1])
-        return original(hidden, context, step_emb)
+        return original(hidden, context, step_emb, **kwargs)
 
     monkeypatch.setattr(tiny_model.recurrent_block, "forward", wrapped)
     _logits, stats = tiny_model(ids, mask, mode="adaptive_soft", max_steps=4)
     assert sum(seen_rows) == 2 * 10 * 4
     assert stats["total_token_evaluations"] == 2 * 10 * 4
     assert stats["mode"] == "adaptive_soft"
+
+
+def test_kv_cache_decode_matches_full_forward(tiny_model, tokenizer):
+    ids, mask = _batch(tokenizer, size=2, length=10)
+    with torch.no_grad():
+        prompt_logits, _stats, cache = tiny_model.prefill(
+            ids, mask, mode="fixed_depth", max_steps=2
+        )
+        next_id = prompt_logits[:, -1, :].argmax(dim=-1, keepdim=True)
+        new_ids = torch.cat([ids, next_id], dim=1)
+        new_mask = torch.cat(
+            [mask, torch.ones((2, 1), dtype=mask.dtype)], dim=1
+        )
+        cached_logits, _stats, _cache = tiny_model.decode_step(
+            next_id, new_mask, cache, mode="fixed_depth", max_steps=2
+        )
+        full_logits, _stats = tiny_model(
+            new_ids, new_mask, mode="fixed_depth", max_steps=2
+        )
+    assert torch.allclose(
+        cached_logits[:, -1, :], full_logits[:, -1, :], atol=1e-4
+    )
 
 
 def test_memory_disabled_matches_plain_forward(tiny_model, tokenizer):

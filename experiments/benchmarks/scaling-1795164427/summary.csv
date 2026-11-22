@@ -1,0 +1,10 @@
+autocast,batch_size,device,effective_precision,error,finite,grad_norm,grad_scaler,loss,losses_all,parameters,parameters_millions,precision,precision_reason,preset,recurrent_steps,repeats,rss_mb,seq_len,step_seconds,step_seconds_all,supported,target_parameters,tokens_per_second,warmup_steps
+False,1,cpu,fp32,,True,22.482255,False,5.262716,"[5.262716, 5.262716]",15237365,15.237,fp32,,15m,2,2,308.6,16,0.114336,"[0.115822, 0.112851]",True,15000000,139.938,1
+True,1,cpu,bf16,,True,22.512232,False,5.263108,"[5.263108, 5.263108]",15237365,15.237,bf16,CPU bf16 autocast; ops run in bfloat16 with fp32 accumulation,15m,2,2,344.2,16,3.174794,"[3.243276, 3.106313]",True,15000000,5.04,1
+True,1,cpu,fp16,,True,22.483836,False,5.262708,"[5.262708, 5.262708]",15237365,15.237,fp16,CPU fp16 autocast; ops run in half precision with fp32 accumulation,15m,2,2,345.0,16,3.261561,"[3.150513, 3.372609]",True,15000000,4.906,1
+False,1,cpu,fp32,,True,41.304335,False,5.755725,"[5.755725, 5.755725]",50107013,50.107,fp32,,50m,2,2,600.4,16,0.595229,"[0.580868, 0.60959]",True,50000000,26.88,1
+True,1,cpu,bf16,,True,41.293114,False,5.754218,"[5.754218, 5.754218]",50107013,50.107,bf16,CPU bf16 autocast; ops run in bfloat16 with fp32 accumulation,50m,2,2,599.1,16,14.029818,"[14.546153, 13.513483]",True,50000000,1.14,1
+True,1,cpu,fp16,,True,41.300524,False,5.755434,"[5.755434, 5.755434]",50107013,50.107,fp16,CPU fp16 autocast; ops run in half precision with fp32 accumulation,50m,2,2,599.1,16,16.023995,"[15.765061, 16.28293]",True,50000000,0.999,1
+False,1,cpu,fp32,,True,71.387162,False,5.586657,"[5.586657, 5.586657]",123920165,123.92,fp32,,125m,2,2,1187.8,16,1.087958,"[1.19116, 0.984756]",True,125000000,14.706,1
+True,1,cpu,bf16,,True,71.271364,False,5.583708,"[5.583708, 5.583708]",123920165,123.92,bf16,CPU bf16 autocast; ops run in bfloat16 with fp32 accumulation,125m,2,2,1317.4,16,37.74419,"[42.257635, 33.230746]",True,125000000,0.424,1
+True,1,cpu,fp16,,True,71.383868,False,5.586179,"[5.586179, 5.586179]",123920165,123.92,fp16,CPU fp16 autocast; ops run in half precision with fp32 accumulation,125m,2,2,1319.4,16,51.339284,"[53.005222, 49.673347]",True,125000000,0.312,1

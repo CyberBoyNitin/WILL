@@ -20,6 +20,10 @@ jobs:
         run: pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Install package
+        run: pip install -e . --no-deps
+      - name: Check console entry point
+        run: will-serve --help
       - name: Run tests
         run: python -m pytest -q
 

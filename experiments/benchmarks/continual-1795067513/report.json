@@ -1,0 +1,618 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "continual-1795067513",
+  "suite": "continual",
+  "created_at": 1795067565.9434085,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 1.14,
+    "process_rss_mb": 227.9,
+    "timestamp": 1795067566.1522596
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": null,
+    "depths": null,
+    "modes": null,
+    "adaptive_max_steps": null,
+    "batch_size": 16,
+    "max_examples": 5,
+    "max_new_tokens": 12,
+    "repeats": 3,
+    "generation_repeats": 3,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "continual_domains": 3,
+    "continual_facts_per_domain": 20,
+    "consolidation_ridge": null,
+    "device": "cpu",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": null
+  },
+  "duration_seconds": 52.961,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "add-single-act-final",
+  "dataset": {
+    "kind": "sequential_key_value",
+    "domains": 3,
+    "facts_per_domain": 20,
+    "facts_total": 60,
+    "seed": 1337,
+    "preview": [
+      [
+        "K00=V100",
+        "K01=V101",
+        "K02=V102"
+      ],
+      [
+        "K20=V120",
+        "K21=V121",
+        "K22=V122"
+      ],
+      [
+        "K40=V140",
+        "K41=V141",
+        "K42=V142"
+      ]
+    ]
+  },
+  "ingest": [
+    {
+      "session_id": "653d871dbd724371bbf2a82effc99e29",
+      "document_id": "1585bc67f81f4d27ab109ab744ae7223",
+      "chunks_added": 2,
+      "total_chunks": 2,
+      "pairs_seen": 37,
+      "updates": 3,
+      "total_updates": 3,
+      "adapt_seconds": 0.3108,
+      "state_bytes": 29440,
+      "memory_state_bytes": 16640,
+      "seconds": 0.3116
+    },
+    {
+      "session_id": "653d871dbd724371bbf2a82effc99e29",
+      "document_id": "6297940c5fc74635b1e6e1dbef44a44a",
+      "chunks_added": 2,
+      "total_chunks": 4,
+      "pairs_seen": 37,
+      "updates": 3,
+      "total_updates": 6,
+      "adapt_seconds": 0.4744,
+      "state_bytes": 42240,
+      "memory_state_bytes": 16640,
+      "seconds": 0.4751
+    },
+    {
+      "session_id": "653d871dbd724371bbf2a82effc99e29",
+      "document_id": "0ab704eb71e841d28680d91d2510dc37",
+      "chunks_added": 2,
+      "total_chunks": 6,
+      "pairs_seen": 37,
+      "updates": 3,
+      "total_updates": 9,
+      "adapt_seconds": 0.3352,
+      "state_bytes": 55040,
+      "memory_state_bytes": 16640,
+      "seconds": 0.3371
+    }
+  ],
+  "results": [
+    {
+      "stage": 1,
+      "domain": 0,
+      "facts_seen": 20,
+      "domain_facts": 20,
+      "neural_recall_at_1": 1.0,
+      "lexical_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 1.0,
+      "per_domain": [
+        {
+          "domain": 0,
+          "facts": 20,
+          "neural_recall_at_1": 1.0,
+          "lexical_recall_at_1": 1.0,
+          "hybrid_recall_at_1": 1.0
+        }
+      ],
+      "max_neural_forgetting_pct": 0.0,
+      "max_hybrid_forgetting_pct": 0.0,
+      "consolidation": {
+        "session_id": "653d871dbd724371bbf2a82effc99e29",
+        "pairs": 20,
+        "consolidations": 1,
+        "weight_norm_before": 4.191675,
+        "weight_norm_after": 7.008231,
+        "loss": 5.892340595892165e-06,
+        "seconds": 0.0045
+      },
+      "state_bytes": 29440,
+      "memory_state_bytes": 16640,
+      "weight_norm": 7.008231,
+      "state_version": 2,
+      "neural_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.999791
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 0.999954
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.999796
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.999891
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.999967
+        }
+      ],
+      "lexical_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 2.639057
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 2.639057
+        }
+      ],
+      "hybrid_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.4
+        }
+      ]
+    },
+    {
+      "stage": 2,
+      "domain": 1,
+      "facts_seen": 40,
+      "domain_facts": 20,
+      "neural_recall_at_1": 1.0,
+      "lexical_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 1.0,
+      "per_domain": [
+        {
+          "domain": 0,
+          "facts": 20,
+          "neural_recall_at_1": 1.0,
+          "lexical_recall_at_1": 1.0,
+          "hybrid_recall_at_1": 1.0
+        },
+        {
+          "domain": 1,
+          "facts": 20,
+          "neural_recall_at_1": 1.0,
+          "lexical_recall_at_1": 1.0,
+          "hybrid_recall_at_1": 1.0
+        }
+      ],
+      "max_neural_forgetting_pct": 0.0,
+      "max_hybrid_forgetting_pct": 0.0,
+      "consolidation": {
+        "session_id": "653d871dbd724371bbf2a82effc99e29",
+        "pairs": 40,
+        "consolidations": 2,
+        "weight_norm_before": 7.569361,
+        "weight_norm_after": 11.384809,
+        "loss": 2.0746156224049628e-05,
+        "seconds": 0.0256
+      },
+      "state_bytes": 42240,
+      "memory_state_bytes": 16640,
+      "weight_norm": 11.384809,
+      "state_version": 2,
+      "neural_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.99957
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 0.999717
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.999374
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.999163
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.999601
+        }
+      ],
+      "lexical_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 3.308107
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 3.308107
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 3.308107
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 3.308107
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 3.308107
+        }
+      ],
+      "hybrid_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.4
+        }
+      ]
+    },
+    {
+      "stage": 3,
+      "domain": 2,
+      "facts_seen": 60,
+      "domain_facts": 20,
+      "neural_recall_at_1": 1.0,
+      "lexical_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 1.0,
+      "per_domain": [
+        {
+          "domain": 0,
+          "facts": 20,
+          "neural_recall_at_1": 1.0,
+          "lexical_recall_at_1": 1.0,
+          "hybrid_recall_at_1": 1.0
+        },
+        {
+          "domain": 1,
+          "facts": 20,
+          "neural_recall_at_1": 1.0,
+          "lexical_recall_at_1": 1.0,
+          "hybrid_recall_at_1": 1.0
+        },
+        {
+          "domain": 2,
+          "facts": 20,
+          "neural_recall_at_1": 1.0,
+          "lexical_recall_at_1": 1.0,
+          "hybrid_recall_at_1": 1.0
+        }
+      ],
+      "max_neural_forgetting_pct": 0.0,
+      "max_hybrid_forgetting_pct": 0.0,
+      "consolidation": {
+        "session_id": "653d871dbd724371bbf2a82effc99e29",
+        "pairs": 60,
+        "consolidations": 3,
+        "weight_norm_before": 11.65016,
+        "weight_norm_after": 15.877929,
+        "loss": 8.088461618172005e-05,
+        "seconds": 0.0054
+      },
+      "state_bytes": 55040,
+      "memory_state_bytes": 16640,
+      "weight_norm": 15.877929,
+      "state_version": 2,
+      "neural_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.99845
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 0.999006
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.997498
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.994688
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.998663
+        }
+      ],
+      "lexical_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 3.705409
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 3.705409
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 3.705409
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 3.705409
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 3.705409
+        }
+      ],
+      "hybrid_details": [
+        {
+          "key": "K00",
+          "expected": "V100",
+          "predicted": "V100",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K01",
+          "expected": "V101",
+          "predicted": "V101",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K02",
+          "expected": "V102",
+          "predicted": "V102",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K03",
+          "expected": "V103",
+          "predicted": "V103",
+          "correct": true,
+          "score": 0.4
+        },
+        {
+          "key": "K04",
+          "expected": "V104",
+          "predicted": "V104",
+          "correct": true,
+          "score": 0.4
+        }
+      ]
+    }
+  ],
+  "save_load": {
+    "exact": true,
+    "state_hash_before": "d609c4b64cd1c03dcfd09fa16f0b02666669472de20fcc7b8441d13c7c2e16e9",
+    "state_hash_after": "d609c4b64cd1c03dcfd09fa16f0b02666669472de20fcc7b8441d13c7c2e16e9",
+    "recall": {
+      "neural_recall_at_1": 1.0,
+      "hybrid_recall_at_1": 1.0
+    }
+  },
+  "summary": {
+    "facts_total": 60,
+    "domains": 3,
+    "facts_per_domain": 20,
+    "neural_recall_at_1": 1.0,
+    "lexical_recall_at_1": 1.0,
+    "hybrid_recall_at_1": 1.0,
+    "max_neural_forgetting_pct": 0.0,
+    "max_hybrid_forgetting_pct": 0.0,
+    "catastrophic_forgetting_ok": true,
+    "slow_weights_unchanged": true,
+    "slow_weights_hash_before": "fa8dffa22add49e27c199f3dbdbde89e60be90abc948241f98fd3c202ee2a4b8",
+    "slow_weights_hash_after": "fa8dffa22add49e27c199f3dbdbde89e60be90abc948241f98fd3c202ee2a4b8",
+    "save_load_exact": true,
+    "state_version": 2,
+    "consolidations": 3,
+    "fast_state_bytes": 55040,
+    "fast_parameters": 4160,
+    "slow_parameters": 581765,
+    "ridge": null
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\continual-1795067513\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\continual-1795067513\\summary.csv"
+  }
+}

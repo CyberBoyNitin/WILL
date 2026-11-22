@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "will-engine"
+version = "0.2.0"
+description = "WILL: adaptive-recurrent causal LM with session-local fast memory"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "WILL contributors" }]
+dependencies = [
+  "torch>=2.4",
+  "pydantic>=2.8",
+  "PyYAML>=6.0",
+  "psutil>=6.0",
+]
+
+[project.optional-dependencies]
+server = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "python-multipart>=0.0.9",
+  "pymupdf>=1.24",
+]
+test = [
+  "pytest>=8.0",
+  "httpx>=0.27",
+]
+
+[project.scripts]
+will-serve = "backend.server.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["will_engine*", "backend*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

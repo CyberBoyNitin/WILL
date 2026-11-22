@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 import time
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Callable
 
@@ -11,9 +12,16 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from backend.config import ModelConfig, TrainingConfig
+from backend.engine.compilation import maybe_compile
 from backend.engine.metrics import count_parameters
 from backend.engine.model import WILLModel
 from backend.engine.tokenizer import ByteTokenizer
+from backend.training.precision import (
+    PrecisionPlan,
+    autocast_context,
+    build_grad_scaler,
+    resolve_precision,
+)
 from backend.training.checkpoints import (
     load_checkpoint,
     save_checkpoint,
@@ -23,6 +31,7 @@ from backend.training.datasets import (
     collate_lm,
     dataset_manifest,
     make_dataset,
+    make_mixed_dataset,
     normalize_answer,
 )
 from backend.training.losses import language_model_loss, total_loss
@@ -78,6 +87,7 @@ def evaluate_loss(
     mode: str,
     max_steps: int,
     halt_epsilon: float | None = None,
+    precision_plan: PrecisionPlan | None = None,
 ) -> dict[str, float]:
     model.eval()
     total_nll = 0.0
@@ -91,14 +101,20 @@ def evaluate_loss(
         ids = batch["input_ids"].to(device)
         labels = batch["labels"].to(device)
         mask = batch["attention_mask"].to(device)
-        logits, stats = model(
-            ids,
-            mask,
-            mode=mode,
-            max_steps=max_steps,
-            halt_epsilon=halt_epsilon,
-            memory_enabled=False,
+        context = (
+            autocast_context(precision_plan)
+            if precision_plan is not None
+            else nullcontext()
         )
+        with context:
+            logits, stats = model(
+                ids,
+                mask,
+                mode=mode,
+                max_steps=max_steps,
+                halt_epsilon=halt_epsilon,
+                memory_enabled=False,
+            )
         nll = F.cross_entropy(
             logits.reshape(-1, logits.shape[-1]),
             labels.reshape(-1),
@@ -138,14 +154,20 @@ def evaluate_generation(
     max_new_tokens: int = 24,
     max_examples: int = 12,
     halt_epsilon: float | None = None,
+    precision_plan: PrecisionPlan | None = None,
 ) -> dict[str, Any]:
+    """Generate every held-out answer with the incremental cache path.
+
+    Prompts are left-padded into a batch, prefilled once, and then decoded with
+    one row-compacted KV cache.  This keeps the cache exact while avoiding a
+    separate Python generation loop per example.
+    """
     if len(dataset) == 0:
         return {"accuracy": None, "count": 0, "examples": []}
     correct = 0
     total = 0
     examples: list[dict[str, Any]] = []
     model.eval()
-    max_seq_len = model.cfg.max_seq_len
     generation_start = time.perf_counter()
     total_evaluations = 0
     total_macs = 0
@@ -155,63 +177,34 @@ def evaluate_generation(
         items = [
             dataset[i] for i in range(start, min(start + batch_size, len(dataset)))
         ]
-        # Track every sequence independently. Prompts have different lengths, so
-        # a shared right-padded tensor cannot be indexed at ``logits[:, -1]``:
-        # that column belongs to the longest prompt only. Re-pad each step and
-        # gather the logits at each row's own last real token instead.
-        seqs: list[list[int]] = [list(item["prompt_ids"]) for item in items]
-        finished = [False] * len(items)
-        generated: list[list[int]] = [[] for _ in items]
-        for _ in range(max_new_tokens):
-            active = [
-                i
-                for i, seq in enumerate(seqs)
-                if not finished[i] and len(seq) < max_seq_len
-            ]
-            if not active:
-                break
-            max_len = max(len(seqs[i]) for i in active)
-            ids = torch.full(
-                (len(active), max_len),
-                tokenizer.pad_id,
-                dtype=torch.long,
-                device=device,
-            )
-            mask = torch.zeros(
-                (len(active), max_len), dtype=torch.long, device=device
-            )
-            lengths: list[int] = []
-            for row, i in enumerate(active):
-                n = len(seqs[i])
-                ids[row, :n] = torch.tensor(
-                    seqs[i], dtype=torch.long, device=device
-                )
-                mask[row, :n] = 1
-                lengths.append(n)
-            logits, _stats = model(
-                ids,
-                mask,
+        prompts = [
+            list(item["prompt_ids"])[: model.cfg.max_seq_len]
+            or [tokenizer.bos_id]
+            for item in items
+        ]
+        context = (
+            autocast_context(precision_plan)
+            if precision_plan is not None
+            else nullcontext()
+        )
+        with context:
+            out = model.generate_batch(
+                prompts,
+                tokenizer,
                 mode=mode,
                 max_steps=max_steps,
                 halt_epsilon=halt_epsilon,
-                memory_enabled=False,
+                max_new_tokens=max_new_tokens,
+                stop_at_eos=True,
             )
-            total_evaluations += int(_stats.get("total_token_evaluations", 0))
-            total_macs += int(_stats.get("estimated_macs", 0))
-            depth_sum += float(_stats.get("mean_depth", 0.0)) * len(active)
-            depth_seqs += len(active)
-            rows = torch.arange(len(active), device=device)
-            last_idx = torch.tensor(lengths, dtype=torch.long, device=device) - 1
-            next_ids = torch.argmax(logits[rows, last_idx, :], dim=-1).tolist()
-            for row, i in enumerate(active):
-                tid = int(next_ids[row])
-                generated[i].append(tid)
-                if tid == tokenizer.eos_id:
-                    finished[i] = True
-                else:
-                    seqs[i].append(tid)
-        for i, item in enumerate(items):
-            pred_ids = generated[i]
+        total_evaluations += int(out.get("token_evaluations", 0))
+        total_macs += int(out.get("estimated_macs", 0))
+        batch_depth_count = int(out.get("depth_count", 0))
+        if batch_depth_count:
+            depth_sum += float(out.get("mean_depth", 0.0)) * batch_depth_count
+            depth_seqs += batch_depth_count
+        for local, item in enumerate(items):
+            pred_ids = list(out["generated_ids"][local])
             if tokenizer.eos_id in pred_ids:
                 pred_ids = pred_ids[: pred_ids.index(tokenizer.eos_id)]
             pred = tokenizer.decode(pred_ids, skip_special=True)
@@ -262,6 +255,18 @@ class Trainer:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.device = resolve_device(device)
         self.model.to(self.device)
+        self.precision_plan = resolve_precision(training_cfg.precision, self.device)
+        self.scaler = build_grad_scaler(self.precision_plan)
+        self.train_model = self.model
+        self.compilation_status: dict[str, Any] = {
+            "requested": bool(training_cfg.torch_compile),
+            "compiled": False,
+            "used": "eager",
+            "mode": training_cfg.compile_mode,
+            "checked": False,
+            "reason": "compilation not requested",
+            "generation_path": "eager",
+        }
         self.progress_cb = progress_cb
         self.stop_event = stop_event
         self.history: list[dict[str, Any]] = []
@@ -280,24 +285,11 @@ class Trainer:
         self.eval_mode = (
             "fixed_depth" if training_cfg.mode == "fixed_depth" else "adaptive_hard"
         )
-        self.train_ds = make_dataset(
-            training_cfg.task, "train", training_cfg.train_size,
-            training_cfg.seed, tokenizer, model_cfg.max_seq_len,
-            min_complexity=training_cfg.min_complexity,
-            max_complexity=training_cfg.max_complexity,
-        )
-        self.val_ds = make_dataset(
-            training_cfg.task, "val", training_cfg.val_size,
-            training_cfg.seed, tokenizer, model_cfg.max_seq_len,
-            min_complexity=training_cfg.min_complexity,
-            max_complexity=training_cfg.max_complexity,
-        )
-        self.test_ds = make_dataset(
-            training_cfg.task, "test", training_cfg.test_size,
-            training_cfg.seed, tokenizer, model_cfg.max_seq_len,
-            min_complexity=training_cfg.min_complexity,
-            max_complexity=training_cfg.max_complexity,
-        )
+        if training_cfg.torch_compile:
+            self._setup_compilation()
+        self.train_ds = self._make_split("train", training_cfg.train_size)
+        self.val_ds = self._make_split("val", training_cfg.val_size)
+        self.test_ds = self._make_split("test", training_cfg.test_size)
         self.train_loader = DataLoader(
             self.train_ds,
             batch_size=training_cfg.batch_size,
@@ -320,6 +312,102 @@ class Trainer:
         )
         if resume_from:
             self._resume(resume_from)
+
+    def _make_split(self, split: str, size: int):
+        if self.cfg.mixed_easy_ratio is not None:
+            return make_mixed_dataset(
+                task=self.cfg.task,
+                split=split,
+                size=size,
+                seed=self.cfg.seed,
+                tokenizer=self.tokenizer,
+                max_seq_len=self.model_cfg.max_seq_len,
+                easy_ratio=self.cfg.mixed_easy_ratio,
+                easy_complexity=self.cfg.min_complexity,
+                hard_complexity=self.cfg.max_complexity,
+            )
+        return make_dataset(
+            self.cfg.task,
+            split,
+            size,
+            self.cfg.seed,
+            self.tokenizer,
+            self.model_cfg.max_seq_len,
+            min_complexity=self.cfg.min_complexity,
+            max_complexity=self.cfg.max_complexity,
+        )
+
+    def _setup_compilation(self) -> None:
+        """Compile the full-sequence forward and verify it against eager.
+
+        The optimizer and checkpoints keep using ``self.model`` so state-dict
+        keys and saved checkpoints are unchanged.  Only the training forward
+        call goes through the compiled handle.
+        """
+        probe_len = min(8, self.model_cfg.max_seq_len)
+        ids = torch.randint(
+            1, self.model_cfg.vocab_size, (1, probe_len), device=self.device
+        )
+        mask = torch.ones_like(ids)
+        was_training = self.model.training
+        self.model.eval()
+
+        def probe(module):
+            logits, _ = module(
+                ids,
+                mask,
+                mode="fixed_depth",
+                max_steps=self.max_steps,
+                memory_enabled=False,
+            )
+            return logits
+
+        try:
+            compiled, status = maybe_compile(
+                self.model,
+                enabled=True,
+                mode=self.cfg.compile_mode,
+                probe=probe,
+            )
+        finally:
+            self.model.train(was_training)
+        self.compilation_status = status
+        if status.get("used") == "compiled":
+            self.train_model = compiled
+        self._emit({"type": "compile", **status})
+
+    def _train_forward(self, ids, mask):
+        try:
+            return self.train_model(
+                ids,
+                mask,
+                mode=self.cfg.mode,
+                max_steps=self.max_steps,
+                memory_enabled=False,
+            )
+        except Exception as exc:
+            if self.train_model is self.model:
+                raise
+            # A compiler can fail on the first real training shape even when
+            # the probe passed.  Retry the batch eagerly; no optimizer step has
+            # happened yet, so this is a clean fallback.
+            self.compilation_status.update(
+                {
+                    "compiled": False,
+                    "used": "eager",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "reason": "compiled training step failed; eager fallback",
+                }
+            )
+            self._emit({"type": "compile", **self.compilation_status})
+            self.train_model = self.model
+            return self.model(
+                ids,
+                mask,
+                mode=self.cfg.mode,
+                max_steps=self.max_steps,
+                memory_enabled=False,
+            )
 
     def _resume(self, path: str) -> None:
         payload = load_checkpoint(path, map_location="cpu")
@@ -344,6 +432,22 @@ class Trainer:
                 self.progress_cb(event)
             except Exception:
                 pass
+
+    def _optimizer_step(self) -> None:
+        if self.scaler is not None:
+            self.scaler.unscale_(self.optimizer)
+        if self.cfg.grad_clip:
+            torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(), self.cfg.grad_clip
+            )
+        if self.scaler is not None:
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+        else:
+            self.optimizer.step()
+        if self.scheduler is not None:
+            self.scheduler.step()
+        self.optimizer.zero_grad(set_to_none=True)
 
     def _stopped(self) -> bool:
         return bool(self.stop_event and self.stop_event.is_set())
@@ -381,26 +485,18 @@ class Trainer:
                 ids = batch["input_ids"].to(self.device)
                 labels = batch["labels"].to(self.device)
                 mask = batch["attention_mask"].to(self.device)
-                logits, stats = self.model(
-                    ids,
-                    mask,
-                    mode=cfg.mode,
-                    max_steps=self.max_steps,
-                    memory_enabled=False,
-                )
-                loss, parts = total_loss(
-                    logits, labels, stats, ponder_lambda=ponder_lambda
-                )
-                (loss / cfg.grad_accum).backward()
+                with autocast_context(self.precision_plan):
+                    logits, stats = self._train_forward(ids, mask)
+                    loss, parts = total_loss(
+                        logits, labels, stats, ponder_lambda=ponder_lambda
+                    )
+                scaled_loss = loss / cfg.grad_accum
+                if self.scaler is not None:
+                    self.scaler.scale(scaled_loss).backward()
+                else:
+                    scaled_loss.backward()
                 if (step + 1) % cfg.grad_accum == 0:
-                    if cfg.grad_clip:
-                        torch.nn.utils.clip_grad_norm_(
-                            self.model.parameters(), cfg.grad_clip
-                        )
-                    self.optimizer.step()
-                    if self.scheduler is not None:
-                        self.scheduler.step()
-                    self.optimizer.zero_grad(set_to_none=True)
+                    self._optimizer_step()
                     global_step += 1
                 n_batches += 1
                 tokens_seen += int(mask.sum().item())
@@ -430,12 +526,7 @@ class Trainer:
                     )
 
             if n_batches and n_batches % cfg.grad_accum != 0:
-                if cfg.grad_clip:
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), cfg.grad_clip)
-                self.optimizer.step()
-                if self.scheduler is not None:
-                    self.scheduler.step()
-                self.optimizer.zero_grad(set_to_none=True)
+                self._optimizer_step()
                 global_step += 1
 
             train_metrics = {
@@ -446,7 +537,12 @@ class Trainer:
                 "epoch_seconds": time.perf_counter() - epoch_start,
             }
             val = evaluate_loss(
-                self.model, self.val_loader, self.device, cfg.mode, self.max_steps
+                self.model,
+                self.val_loader,
+                self.device,
+                cfg.mode,
+                self.max_steps,
+                precision_plan=self.precision_plan,
             )
             val_acc = None
             gen = None
@@ -459,6 +555,7 @@ class Trainer:
                     mode=self.eval_mode,
                     max_steps=self.max_steps,
                     batch_size=max(16, cfg.batch_size),
+                    precision_plan=self.precision_plan,
                 )
                 val_acc = gen["accuracy"]
             entry = {
@@ -508,6 +605,8 @@ class Trainer:
             "parameters_total": count_parameters(self.model),
             "parameters_trainable": count_parameters(self.model, trainable_only=True),
             "device": str(self.device),
+            "precision": self.precision_plan.as_dict(),
+            "compilation": dict(self.compilation_status),
             "model_config": self.model_cfg.model_dump(),
             "training_config": self.cfg.model_dump(),
             "datasets": {
@@ -542,7 +641,12 @@ class Trainer:
 
     def evaluate_test(self) -> dict[str, Any]:
         val = evaluate_loss(
-            self.model, self.val_loader, self.device, self.cfg.mode, self.max_steps
+            self.model,
+            self.val_loader,
+            self.device,
+            self.cfg.mode,
+            self.max_steps,
+            precision_plan=self.precision_plan,
         )
         result: dict[str, Any] = {"loss": val, "task": self.cfg.task}
         if self.cfg.task != "lm":
@@ -554,6 +658,7 @@ class Trainer:
                 mode=self.eval_mode,
                 max_steps=self.max_steps,
                 batch_size=max(16, self.cfg.batch_size),
+                precision_plan=self.precision_plan,
             )
             result["generation"] = gen
         return result

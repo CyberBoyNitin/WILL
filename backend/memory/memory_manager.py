@@ -14,9 +14,14 @@ import torch
 
 from backend.config import MemoryConfig
 from backend.memory.bm25 import BM25Index
-from backend.memory.fast_memory import FastMemoryState, FastWeightMemory
+from backend.memory.fast_memory import (
+    STATE_VERSION,
+    FastMemoryState,
+    FastWeightMemory,
+)
 
 SESSION_RE = re.compile(r"^[a-f0-9]{32}$")
+SESSION_FORMAT_VERSION = 2
 
 
 def validate_session_id(session_id: str) -> str:
@@ -71,10 +76,12 @@ class MemorySession:
 
     def to_payload(self) -> dict[str, Any]:
         return {
+            "format_version": SESSION_FORMAT_VERSION,
             "session_id": self.session_id,
             "name": self.name,
             "created_at": self.created_at,
             "state": {
+                "version": self.state.version,
                 "kind": self.state.kind,
                 "params": {k: v.detach().cpu() for k, v in self.state.params.items()},
                 "updates": self.state.updates,
@@ -93,7 +100,19 @@ class MemorySession:
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> "MemorySession":
+        format_version = int(payload.get("format_version", 1))
+        if format_version > SESSION_FORMAT_VERSION:
+            raise ValueError(
+                f"memory session format {format_version} is newer than supported "
+                f"format {SESSION_FORMAT_VERSION}"
+            )
         st = payload["state"]
+        state_version = int(st.get("version", 1))
+        if state_version > STATE_VERSION:
+            raise ValueError(
+                f"fast-memory state version {state_version} is newer than "
+                f"supported version {STATE_VERSION}"
+            )
         state = FastMemoryState(
             kind=st["kind"],
             params={k: v for k, v in st["params"].items()},
@@ -101,6 +120,7 @@ class MemorySession:
             adapt_seconds=float(st.get("adapt_seconds", 0.0)),
             last_loss=st.get("last_loss"),
             metadata=st.get("metadata", {}),
+            version=STATE_VERSION,
         )
         session = cls(
             session_id=payload["session_id"],
@@ -242,6 +262,95 @@ class MemoryManager:
                 "adapt_seconds": elapsed,
             }
 
+    def _pair_vectors(
+        self, session: MemorySession
+    ) -> tuple[torch.Tensor, torch.Tensor] | None:
+        rows: list[tuple[torch.Tensor, torch.Tensor]] = []
+        seen: set[tuple[str, str]] = set()
+        for chunk in session.chunks:
+            for rec in chunk.get("records", []):
+                marker = (
+                    str(rec.get("key_text", "")),
+                    str(rec.get("value_text", "")),
+                )
+                if marker in seen:
+                    continue
+                key_vec = rec.get("key_vec")
+                value_vec = rec.get("value_vec")
+                if isinstance(key_vec, torch.Tensor) and isinstance(
+                    value_vec, torch.Tensor
+                ):
+                    seen.add(marker)
+                    rows.append((key_vec.float(), value_vec.float()))
+        if not rows:
+            return None
+        return (
+            torch.stack([row[0] for row in rows]).to(self.device),
+            torch.stack([row[1] for row in rows]).to(self.device),
+        )
+
+    def consolidate_session(
+        self,
+        session_id: str,
+        ridge: float | None = None,
+        persist: bool = True,
+    ) -> dict[str, Any]:
+        """Replay stored key/value pairs into the bounded fast state.
+
+        For TTT-Linear this is a closed-form ridge solve, which is the
+        minimum-norm least-squares state for the replay set.  The session
+        source records remain available for citations; only the bounded fast
+        state is rewritten.
+        """
+        with self._lock:
+            session = self.get_session(session_id)
+            pairs = self._pair_vectors(session)
+            if pairs is None:
+                return {
+                    "session_id": session_id,
+                    "pairs": 0,
+                    "consolidations": int(
+                        session.state.metadata.get("consolidations", 0)
+                    ),
+                    "weight_norm": session.state.weight_norm(),
+                    "loss": None,
+                    "seconds": 0.0,
+                }
+            keys, values = pairs
+            before_norm = session.state.weight_norm()
+            start = time.perf_counter()
+            self.fast_memory.consolidate(
+                session.state, keys, values, ridge=ridge
+            )
+            elapsed = time.perf_counter() - start
+            after_norm = session.state.weight_norm()
+            session.metadata["last_consolidation"] = {
+                "pairs": int(keys.shape[0]),
+                "ridge": (
+                    float(ridge)
+                    if ridge is not None
+                    else float(getattr(self.fast_memory.cfg, "memory_ridge", 0.0))
+                ),
+                "weight_norm_before": round(before_norm, 6),
+                "weight_norm_after": round(after_norm, 6),
+                "loss": session.state.last_loss,
+                "seconds": round(elapsed, 4),
+                "timestamp": time.time(),
+            }
+            if persist:
+                self.save_session(session_id)
+            return {
+                "session_id": session_id,
+                "pairs": int(keys.shape[0]),
+                "consolidations": int(
+                    session.state.metadata.get("consolidations", 0)
+                ),
+                "weight_norm_before": round(before_norm, 6),
+                "weight_norm_after": round(after_norm, 6),
+                "loss": session.state.last_loss,
+                "seconds": round(elapsed, 4),
+            }
+
     def ingest_document(
         self,
         session_id: str,
@@ -342,6 +451,12 @@ class MemoryManager:
             "session_id": session.session_id,
             "name": session.name,
             "created_at": session.created_at,
+            "format_version": SESSION_FORMAT_VERSION,
+            "state_version": session.state.version,
+            "weight_norm": round(session.state.weight_norm(), 6),
+            "consolidations": int(
+                session.state.metadata.get("consolidations", 0)
+            ),
             "documents": docs,
             "chunks": chunks,
             "chunk_count": len(session.chunks),

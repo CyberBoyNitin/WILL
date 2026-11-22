@@ -1,0 +1,7 @@
+estimated_macs,generated_tokens,latency_ms_p50,latency_ms_p95,max_new_tokens,max_steps,mean_depth,mode,process_rss_mb,prompt_tokens,repeats,token_evaluations,tokens_per_second
+28938240,1,16.482,42.618,8,4,4.0,fixed_depth,390.4,32,50,128,60.671
+56872960,1,15.974,25.853,8,4,4.0,fixed_depth,391.4,64,50,256,62.602
+114315264,1,20.755,34.516,8,4,4.0,fixed_depth,393.8,128,50,512,48.181
+18616320,1,12.427,23.435,8,3,2.0303,adaptive_hard,394.6,32,50,65,80.472
+36065280,1,14.128,21.865,8,3,2.0154,adaptive_hard,394.6,64,50,129,70.78
+72863744,1,17.491,67.833,8,3,2.0233,adaptive_hard,394.8,128,50,259,57.174

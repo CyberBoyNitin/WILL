@@ -26,8 +26,11 @@ TERMINAL = {"completed", "failed", "cancelled", "interrupted"}
 SUITE_DESCRIPTIONS = {
     "reasoning": "Exact-match generation and answer-only loss on a held-out task split at fixed recurrent depths.",
     "adaptive_compute": "Fixed-depth, differentiable ACT and hard early-exit comparison on the same held-out split.",
+    "mixed_difficulty": "70/30 trivial/hard split with overall and per-stratum accuracy, loss and depth.",
     "memory_recall": "Session-local fast-weight recall on synthetic key/value records with lexical and hybrid baselines.",
-    "inference": "Warmup-controlled latency, throughput, depth and token-evaluation measurements.",
+    "continual": "Sequential 3x20-fact learning with replay consolidation, retention and save/load verification.",
+    "inference": "Warmup-controlled latency, throughput, depth, token-evaluation and compile-probe measurements.",
+    "scaling": "Parameter-matched 15M/50M/125M presets with real fp32/bf16/fp16 forward/backward steps.",
     "ablation": "Execution-mode ablation plus the memory-subsystem recall ablation.",
 }
 
@@ -173,3 +176,14 @@ def report_csv(run_id: str, services: Services = Depends(get_services)):
         filename=f"{run_id}.csv",
         headers={"Cache-Control": "no-store"},
     )
+
+
+@router.get("/reports/{run_id}/json")
+def report_json(run_id: str, services: Services = Depends(get_services)):
+    if not run_id or any(
+        ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_."
+        for ch in run_id
+    ):
+        raise HTTPException(status_code=400, detail="invalid benchmark run id")
+    report = load_report(services.cfg.server.experiment_dir, run_id)
+    return JSONResponse(content=report, headers={"Cache-Control": "no-store"})

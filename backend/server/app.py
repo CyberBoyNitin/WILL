@@ -15,6 +15,7 @@ from backend.server.routes import (
     datasets,
     experiments,
     memory,
+    openai as openai_routes,
     playground,
     system,
     training,
@@ -38,7 +39,7 @@ def create_app(
 
     app = FastAPI(
         title="WILL Research API",
-        version="0.1.0",
+        version="0.2.0",
         description=(
             "Local research API for the WILL adaptive-recurrent model. "
             "All metrics come from real model execution."
@@ -59,7 +60,7 @@ def create_app(
     async def api_key_guard(request: Request, call_next):
         api_key = cfg.server.api_key
         path = request.url.path
-        if api_key and path.startswith("/api") and path != "/api/health":
+        if api_key and path.startswith(("/api", "/v1")) and path != "/api/health":
             supplied = request.headers.get("x-api-key")
             if not supplied:
                 auth = request.headers.get("authorization", "")
@@ -99,14 +100,17 @@ def create_app(
     app.include_router(datasets.router)
     app.include_router(playground.router)
     app.include_router(experiments.router)
+    app.include_router(openai_routes.router)
 
     @app.get("/")
     def root() -> dict:
         return {
             "name": "WILL",
-            "version": "0.1.0",
+            "version": "0.2.0",
             "docs": "/docs",
             "health": "/api/health",
+            "openai_compatible": "/v1/chat/completions",
+            "telemetry": "/v1/telemetry",
             "description": "Adaptive recurrent computation with session-local fast weights.",
         }
 

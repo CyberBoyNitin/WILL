@@ -16,6 +16,11 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _is_source_checkout() -> bool:
+    """True when ``backend`` sits next to this repository's pyproject.toml."""
+    return (ROOT / "pyproject.toml").is_file() and (ROOT / "backend").is_dir()
+
+
 class ModelConfig(BaseModel):
     """Neural architecture configuration."""
 
@@ -30,6 +35,10 @@ class ModelConfig(BaseModel):
     # Adaptive computation
     min_steps: int = 1
     max_steps: int = 4
+    # Deployment cap for adaptive inference.  The model can still be trained
+    # with ``max_steps``; on held-out data the reference checkpoint reaches the
+    # same accuracy with a three-step cap, so the fourth step is optional.
+    adaptive_inference_steps: int | None = 3
     halt_epsilon: float = 0.05
     ff_mult: int = 2
 
@@ -43,6 +52,8 @@ class ModelConfig(BaseModel):
     memory_decay: float = 0.0
     memory_clip: float = 1.0
     memory_weight_decay: float = 0.0
+    memory_norm_max: float = 0.0
+    memory_ridge: float = 1e-3
     memory_hidden_mult: int = 2
 
     tie_embeddings: bool = False
@@ -71,6 +82,11 @@ class ModelConfig(BaseModel):
             raise ValueError("max_steps must be >= min_steps")
         if self.max_steps > 64:
             raise ValueError("max_steps > 64 is not supported")
+        if self.adaptive_inference_steps is not None:
+            if self.adaptive_inference_steps < 1:
+                raise ValueError("adaptive_inference_steps must be >= 1")
+            if self.adaptive_inference_steps > self.max_steps:
+                self.adaptive_inference_steps = self.max_steps
         if not 0.0 <= self.dropout < 1.0:
             raise ValueError("dropout must be in [0, 1)")
         if not 0.0 < self.halt_epsilon < 1.0:
@@ -79,6 +95,10 @@ class ModelConfig(BaseModel):
             raise ValueError("context_layers must be >= 0")
         if self.memory_dim < 8:
             raise ValueError("memory_dim must be >= 8")
+        if self.memory_norm_max < 0:
+            raise ValueError("memory_norm_max must be >= 0")
+        if self.memory_ridge < 0:
+            raise ValueError("memory_ridge must be >= 0")
         if self.max_seq_len < 8:
             raise ValueError("max_seq_len must be >= 8")
         return self
@@ -100,6 +120,12 @@ class ModelConfig(BaseModel):
         mem = 2 * d * self.memory_dim + self.memory_dim * d
         head = d * v
         return int(emb + ctx + block + halt + mem + head)
+
+    def resolved_adaptive_steps(self) -> int:
+        """Inference depth cap for adaptive modes (training may use more)."""
+        if self.adaptive_inference_steps is None:
+            return self.max_steps
+        return max(1, min(self.max_steps, self.adaptive_inference_steps))
 
 
 class TrainingConfig(BaseModel):
@@ -128,6 +154,13 @@ class TrainingConfig(BaseModel):
     max_steps: int | None = None
     min_complexity: int = 1
     max_complexity: int = 2
+    # When set, train/val/test use an exact mixed-difficulty composition:
+    # ``mixed_easy_ratio`` of examples at min_complexity, the rest at
+    # max_complexity.  ``None`` keeps the existing uniform sampler.
+    mixed_easy_ratio: float | None = None
+    precision: Literal["fp32", "bf16", "fp16", "auto"] = "fp32"
+    torch_compile: bool = False
+    compile_mode: Literal["default", "reduce-overhead", "max-autotune"] = "reduce-overhead"
     profile: Literal["tiny", "standard", "experimental", "custom"] = "tiny"
     checkpoint_name: str | None = None
 
@@ -150,6 +183,13 @@ class TrainingConfig(BaseModel):
     def _ponder_warmup(cls, v: int) -> int:
         if v < 0:
             raise ValueError("ponder_warmup_epochs must be >= 0")
+        return v
+
+    @field_validator("mixed_easy_ratio")
+    @classmethod
+    def _mixed_ratio(cls, v: float | None) -> float | None:
+        if v is not None and not 0.0 < v < 1.0:
+            raise ValueError("mixed_easy_ratio must be in (0, 1)")
         return v
 
     @model_validator(mode="after")
@@ -258,6 +298,70 @@ PROFILE_OVERRIDES: dict[str, dict] = {
 }
 
 
+# Parameter-matched scaling presets.  The exact counts are verified by
+# instantiating the model in the scaling benchmark; ``target_parameters`` is
+# only the design target, never a reported measurement.
+SCALING_PRESETS: dict[str, dict] = {
+    "15m": {
+        "target_parameters": 15_000_000,
+        "model": {
+            "vocab_size": 260,
+            "hidden_dim": 624,
+            "n_heads": 8,
+            "context_layers": 2,
+            "context_ff_mult": 2,
+            "max_seq_len": 256,
+            "max_steps": 4,
+            "min_steps": 1,
+            "ff_mult": 4,
+            "memory_dim": 128,
+            "dropout": 0.0,
+        },
+    },
+    "50m": {
+        "target_parameters": 50_000_000,
+        "model": {
+            "vocab_size": 260,
+            "hidden_dim": 1152,
+            "n_heads": 8,
+            "context_layers": 2,
+            "context_ff_mult": 2,
+            "max_seq_len": 256,
+            "max_steps": 4,
+            "min_steps": 1,
+            "ff_mult": 4,
+            "memory_dim": 128,
+            "dropout": 0.0,
+        },
+    },
+    "125m": {
+        "target_parameters": 125_000_000,
+        "model": {
+            "vocab_size": 260,
+            "hidden_dim": 1824,
+            "n_heads": 8,
+            "context_layers": 2,
+            "context_ff_mult": 2,
+            "max_seq_len": 256,
+            "max_steps": 4,
+            "min_steps": 1,
+            "ff_mult": 4,
+            "memory_dim": 128,
+            "dropout": 0.0,
+        },
+    },
+}
+
+
+def scaling_model_config(name: str) -> ModelConfig:
+    """Return a fresh :class:`ModelConfig` for a named scaling preset."""
+    if name not in SCALING_PRESETS:
+        raise ValueError(
+            f"unknown scaling preset {name!r}; expected one of {tuple(SCALING_PRESETS)}"
+        )
+    return ModelConfig(**SCALING_PRESETS[name]["model"])
+
+
 def _deep_merge(base: dict, override: dict) -> dict:
     out = dict(base)
     for k, v in override.items():
@@ -308,6 +412,31 @@ def load_config(path: str | Path | None = None) -> AppConfig:
         cfg.server.experiment_dir = os.environ["WILL_EXPERIMENT_DIR"]
     if os.environ.get("WILL_DEVICE"):
         cfg.server.device = os.environ["WILL_DEVICE"]
+    if not _is_source_checkout():
+        # An installed wheel lives under site-packages, which may be read-only.
+        # Default writable state to ``WILL_HOME`` or the current directory
+        # instead of trying to create data/ inside the package directory.
+        base = Path(os.environ.get("WILL_HOME", Path.cwd()))
+        server_raw = raw.get("server") or {}
+        data_explicit = any(
+            key in server_raw
+            for key in ("data_dir", "upload_dir", "memory_dir", "db_path")
+        )
+        if not os.environ.get("WILL_DATA_DIR") and not data_explicit:
+            cfg.server.data_dir = str(base / "data")
+            cfg.server.upload_dir = str(base / "data" / "uploads")
+            cfg.server.memory_dir = str(base / "data" / "memory_sessions")
+            cfg.server.db_path = str(base / "data" / "will.db")
+        if (
+            not os.environ.get("WILL_CHECKPOINT_DIR")
+            and "checkpoint_dir" not in server_raw
+        ):
+            cfg.server.checkpoint_dir = str(base / "checkpoints")
+        if (
+            not os.environ.get("WILL_EXPERIMENT_DIR")
+            and "experiment_dir" not in server_raw
+        ):
+            cfg.server.experiment_dir = str(base / "experiments")
     cfg.ensure_dirs()
     return cfg
 

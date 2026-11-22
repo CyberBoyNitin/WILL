@@ -1,0 +1,113 @@
+{
+  "session_id": "653d871dbd724371bbf2a82effc99e29",
+  "name": "benchmark-continual",
+  "created_at": 1795067513.5158854,
+  "format_version": 2,
+  "state_version": 2,
+  "weight_norm": 15.877929,
+  "consolidations": 3,
+  "documents": [
+    {
+      "doc_id": "1585bc67f81f4d27ab109ab744ae7223",
+      "filename": "domain_00_1337.txt",
+      "kind": "text",
+      "pages": 1,
+      "size_bytes": 199,
+      "chunk_count": 2,
+      "created_at": 1795067513.5504155
+    },
+    {
+      "doc_id": "6297940c5fc74635b1e6e1dbef44a44a",
+      "filename": "domain_01_1337.txt",
+      "kind": "text",
+      "pages": 1,
+      "size_bytes": 199,
+      "chunk_count": 2,
+      "created_at": 1795067515.6663575
+    },
+    {
+      "doc_id": "0ab704eb71e841d28680d91d2510dc37",
+      "filename": "domain_02_1337.txt",
+      "kind": "text",
+      "pages": 1,
+      "size_bytes": 199,
+      "chunk_count": 2,
+      "created_at": 1795067520.2176557
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "c00000",
+      "doc_id": "1585bc67f81f4d27ab109ab744ae7223",
+      "filename": "domain_00_1337.txt",
+      "page": 1,
+      "token_count": 192,
+      "records": 19,
+      "preview": "K00=V100. K01=V101. K02=V102. K03=V103. K04=V104. K05=V105. K06=V106. K07=V107. K08=V108. K09=V109. K10=V110. K11=V111. K12=V112. K13=V113. K14=V114. K15=V115. K16=V116. K17=V117. K18=V118. K1"
+    },
+    {
+      "chunk_id": "c00001",
+      "doc_id": "1585bc67f81f4d27ab109ab744ae7223",
+      "filename": "domain_00_1337.txt",
+      "page": 1,
+      "token_count": 39,
+      "records": 4,
+      "preview": "K16=V116. K17=V117. K18=V118. K19=V119."
+    },
+    {
+      "chunk_id": "c00000",
+      "doc_id": "6297940c5fc74635b1e6e1dbef44a44a",
+      "filename": "domain_01_1337.txt",
+      "page": 1,
+      "token_count": 192,
+      "records": 19,
+      "preview": "K20=V120. K21=V121. K22=V122. K23=V123. K24=V124. K25=V125. K26=V126. K27=V127. K28=V128. K29=V129. K30=V130. K31=V131. K32=V132. K33=V133. K34=V134. K35=V135. K36=V136. K37=V137. K38=V138. K3"
+    },
+    {
+      "chunk_id": "c00001",
+      "doc_id": "6297940c5fc74635b1e6e1dbef44a44a",
+      "filename": "domain_01_1337.txt",
+      "page": 1,
+      "token_count": 39,
+      "records": 4,
+      "preview": "K36=V136. K37=V137. K38=V138. K39=V139."
+    },
+    {
+      "chunk_id": "c00000",
+      "doc_id": "0ab704eb71e841d28680d91d2510dc37",
+      "filename": "domain_02_1337.txt",
+      "page": 1,
+      "token_count": 192,
+      "records": 19,
+      "preview": "K40=V140. K41=V141. K42=V142. K43=V143. K44=V144. K45=V145. K46=V146. K47=V147. K48=V148. K49=V149. K50=V150. K51=V151. K52=V152. K53=V153. K54=V154. K55=V155. K56=V156. K57=V157. K58=V158. K5"
+    },
+    {
+      "chunk_id": "c00001",
+      "doc_id": "0ab704eb71e841d28680d91d2510dc37",
+      "filename": "domain_02_1337.txt",
+      "page": 1,
+      "token_count": 39,
+      "records": 4,
+      "preview": "K56=V156. K57=V157. K58=V158. K59=V159."
+    }
+  ],
+  "chunk_count": 6,
+  "record_count": 69,
+  "document_count": 3,
+  "updates": 9,
+  "state_updates": 9,
+  "adapt_seconds": 1.0233,
+  "memory_state_bytes": 16640,
+  "chunk_state_bytes": 38400,
+  "total_state_bytes": 55040,
+  "fast_parameters": 4160,
+  "memory_kind": "ttt_linear",
+  "memory_dim": 64,
+  "last_query": null,
+  "retrieval_counts": {
+    "lexical": 0,
+    "neural": 0,
+    "hybrid": 0
+  },
+  "capacity_chunks": 400
+}

@@ -52,6 +52,11 @@ class TrainRequest(BaseModel):
     ponder_warmup_epochs: int = Field(default=0, ge=0, le=500)
     memory_lambda: float = Field(default=0.0, ge=0.0, le=10.0)
     mode: Literal["fixed_depth", "adaptive_soft"] = "fixed_depth"
+    precision: Literal["fp32", "bf16", "fp16", "auto"] = "fp32"
+    torch_compile: bool = False
+    compile_mode: Literal["default", "reduce-overhead", "max-autotune"] = (
+        "reduce-overhead"
+    )
     seed: int = Field(default=1337, ge=0, le=2**31 - 1)
     eval_every: int = Field(default=1, ge=1, le=100)
     early_stop_patience: int = Field(default=0, ge=0, le=1000)
@@ -60,6 +65,7 @@ class TrainRequest(BaseModel):
     halt_epsilon: float = Field(default=0.05, gt=0.0, lt=1.0)
     min_complexity: int = Field(default=1, ge=1, le=4)
     max_complexity: int = Field(default=2, ge=1, le=4)
+    mixed_easy_ratio: float | None = Field(default=None, gt=0.0, lt=1.0)
     checkpoint_name: str | None = Field(default=None, max_length=96)
     device: str = "auto"
 
@@ -74,7 +80,14 @@ class TrainRequest(BaseModel):
 
 class BenchmarkRequest(BaseModel):
     suite: Literal[
-        "reasoning", "adaptive_compute", "memory_recall", "inference", "ablation"
+        "reasoning",
+        "adaptive_compute",
+        "mixed_difficulty",
+        "memory_recall",
+        "continual",
+        "inference",
+        "scaling",
+        "ablation",
     ]
     checkpoint_id: str | None = None
     options: dict[str, Any] = Field(default_factory=dict)
@@ -105,3 +118,57 @@ class MemorySearchRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
     mode: Literal["lexical", "neural", "hybrid"] = "hybrid"
     top_k: int = Field(default=5, ge=1, le=50)
+
+
+class ChatMessage(BaseModel):
+    role: Literal[
+        "system", "developer", "user", "assistant", "tool", "function"
+    ] = "user"
+    content: str | list[dict[str, Any]] | None = None
+
+
+class ChatCompletionRequest(BaseModel):
+    """OpenAI-compatible chat completion request.
+
+    ``model`` accepts a WILL checkpoint id as well as the aliases ``will`` and
+    ``will-engine``.  The extra ``mode``, ``max_steps``, ``memory_session_id``
+    and ``chat_template`` fields are WILL-specific additions; standard OpenAI
+    clients can ignore them.
+    """
+
+    model: str = Field(default="will", max_length=200)
+    messages: list[ChatMessage] = Field(min_length=1, max_length=200)
+    stream: bool = False
+    temperature: float = Field(default=0.0, ge=0.0, le=4.0)
+    top_k: int = Field(default=0, ge=0, le=260)
+    max_tokens: int | None = Field(default=None, ge=1, le=512)
+    max_completion_tokens: int | None = Field(default=None, ge=1, le=512)
+    stop: str | list[str] | None = None
+    mode: ExecutionMode = "adaptive_hard"
+    max_steps: int | None = Field(default=None, ge=1, le=64)
+    halt_epsilon: float | None = Field(default=None, gt=0.0, lt=1.0)
+    memory_session_id: str | None = None
+    checkpoint_id: str | None = None
+    chat_template: Literal["plain", "role"] = "plain"
+    stream_options: dict[str, Any] | None = None
+
+    @property
+    def max_new_tokens(self) -> int:
+        return int(self.max_completion_tokens or self.max_tokens or 32)
+
+
+class MemoryAbsorbRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=2_000_000)
+    session_id: str | None = None
+    name: str = Field(default="api-memory", min_length=1, max_length=120)
+    filename: str = Field(default="inline.txt", max_length=200)
+    consolidate: bool = False
+    checkpoint_id: str | None = None
+
+
+class OpenAIMemoryQueryRequest(BaseModel):
+    session_id: str = Field(min_length=32, max_length=32)
+    question: str = Field(min_length=1, max_length=4000)
+    mode: Literal["lexical", "neural", "hybrid"] = "hybrid"
+    top_k: int = Field(default=5, ge=1, le=50)
+    checkpoint_id: str | None = None

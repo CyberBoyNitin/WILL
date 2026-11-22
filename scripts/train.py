@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from backend.config import TrainingConfig, load_config
+from backend.config import SCALING_PRESETS, TrainingConfig, load_config, scaling_model_config
 from backend.engine.model import WILLModel
 from backend.engine.tokenizer import ByteTokenizer
 from backend.training.trainer import Trainer, resolve_device
@@ -45,6 +45,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--halt-epsilon", type=float, default=None)
     p.add_argument("--min-complexity", type=int, default=None)
     p.add_argument("--max-complexity", type=int, default=None)
+    p.add_argument("--mixed-easy-ratio", type=float, default=None)
+    p.add_argument("--scaling-preset", choices=list(SCALING_PRESETS), default=None)
+    p.add_argument("--precision", choices=["fp32", "bf16", "fp16", "auto"], default=None)
+    p.add_argument("--torch-compile", action="store_true", default=None)
+    p.add_argument(
+        "--compile-mode",
+        choices=["default", "reduce-overhead", "max-autotune"],
+        default=None,
+    )
     p.add_argument("--seed", type=int, default=None)
     p.add_argument("--eval-every", type=int, default=None)
     p.add_argument("--early-stop-patience", type=int, default=None)
@@ -74,6 +83,10 @@ def main() -> int:
         training = type(training)(**{**training.model_dump(), **merged.get("training", {})})
         app_cfg.profile = args.profile
 
+    if args.scaling_preset:
+        model_cfg = scaling_model_config(args.scaling_preset)
+        app_cfg.profile = "custom"
+
     overrides = {
         "task": args.task,
         "epochs": args.epochs,
@@ -93,6 +106,10 @@ def main() -> int:
         "max_steps": args.max_steps,
         "min_complexity": args.min_complexity,
         "max_complexity": args.max_complexity,
+        "mixed_easy_ratio": args.mixed_easy_ratio,
+        "precision": args.precision,
+        "torch_compile": args.torch_compile,
+        "compile_mode": args.compile_mode,
         "seed": args.seed,
         "eval_every": args.eval_every,
         "early_stop_patience": args.early_stop_patience,
@@ -163,6 +180,8 @@ def main() -> int:
                 "duration_seconds": round(metrics["duration_seconds"], 2),
                 "parameters": metrics["parameters_total"],
                 "device": metrics["device"],
+                "precision": metrics.get("precision"),
+                "compilation": metrics.get("compilation"),
             },
             indent=2,
         )

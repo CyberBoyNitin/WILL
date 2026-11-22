@@ -1,0 +1,59 @@
+{
+  "session_id": "9843972fa06c4b3eafa69ed6e5cb152d",
+  "name": "benchmark-recall",
+  "created_at": 1795238098.621115,
+  "format_version": 2,
+  "state_version": 2,
+  "weight_norm": 4.243218,
+  "consolidations": 0,
+  "documents": [
+    {
+      "doc_id": "93a2e83236c247f0977d7cabb9f15ca6",
+      "filename": "recall.txt",
+      "kind": "text",
+      "pages": 1,
+      "size_bytes": 199,
+      "chunk_count": 2,
+      "created_at": 1795238098.6274269
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "c00000",
+      "doc_id": "93a2e83236c247f0977d7cabb9f15ca6",
+      "filename": "recall.txt",
+      "page": 1,
+      "token_count": 192,
+      "records": 19,
+      "preview": "K00=V100. K01=V101. K02=V102. K03=V103. K04=V104. K05=V105. K06=V106. K07=V107. K08=V108. K09=V109. K10=V110. K11=V111. K12=V112. K13=V113. K14=V114. K15=V115. K16=V116. K17=V117. K18=V118. K1"
+    },
+    {
+      "chunk_id": "c00001",
+      "doc_id": "93a2e83236c247f0977d7cabb9f15ca6",
+      "filename": "recall.txt",
+      "page": 1,
+      "token_count": 39,
+      "records": 4,
+      "preview": "K16=V116. K17=V117. K18=V118. K19=V119."
+    }
+  ],
+  "chunk_count": 2,
+  "record_count": 23,
+  "document_count": 1,
+  "updates": 3,
+  "state_updates": 3,
+  "adapt_seconds": 0.2278,
+  "memory_state_bytes": 16640,
+  "chunk_state_bytes": 12800,
+  "total_state_bytes": 29440,
+  "fast_parameters": 4160,
+  "memory_kind": "ttt_linear",
+  "memory_dim": 64,
+  "last_query": null,
+  "retrieval_counts": {
+    "lexical": 0,
+    "neural": 0,
+    "hybrid": 0
+  },
+  "capacity_chunks": 400
+}

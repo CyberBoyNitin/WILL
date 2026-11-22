@@ -64,6 +64,29 @@ def test_adaptive_compute_benchmark_reports_measured_fields(temp_app_cfg):
     assert -100.0 <= adaptive["generation_compute_vs_max_fixed_pct"] <= 100.0
 
 
+def test_continual_benchmark_proves_retention_and_save_load(temp_app_cfg):
+    report = run_benchmark_suite(
+        temp_app_cfg,
+        "continual",
+        {
+            "continual_domains": 2,
+            "continual_facts_per_domain": 5,
+            "device": "cpu",
+        },
+    )
+    assert report["suite"] == "continual"
+    assert report["summary"]["facts_total"] == 10
+    assert report["summary"]["neural_recall_at_1"] == 1.0
+    assert report["summary"]["hybrid_recall_at_1"] == 1.0
+    assert report["summary"]["max_neural_forgetting_pct"] == 0.0
+    assert report["summary"]["catastrophic_forgetting_ok"] is True
+    assert report["summary"]["slow_weights_unchanged"] is True
+    assert report["summary"]["save_load_exact"] is True
+    assert report["summary"]["state_version"] == 2
+    assert len(report["results"]) == 2
+    assert report["save_load"]["exact"] is True
+
+
 def test_report_listing_and_loading(temp_app_cfg):
     report = run_benchmark_suite(
         temp_app_cfg,

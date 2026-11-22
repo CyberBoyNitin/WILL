@@ -15,6 +15,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+STATE_VERSION = 2
+
 
 def _clip_tensor(g: torch.Tensor, clip: float) -> torch.Tensor:
     if clip <= 0:
@@ -35,6 +37,7 @@ class FastMemoryState:
     adapt_seconds: float = 0.0
     last_loss: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    version: int = STATE_VERSION
 
     def clone(self) -> "FastMemoryState":
         return FastMemoryState(
@@ -44,7 +47,24 @@ class FastMemoryState:
             adapt_seconds=self.adapt_seconds,
             last_loss=self.last_loss,
             metadata=dict(self.metadata),
+            version=self.version,
         )
+
+    def weight_norm(self) -> float:
+        """L2 norm of the weight matrices (excluding bias/embedding rows)."""
+        weight = self.params.get("weight")
+        if weight is not None:
+            return float(weight.detach().float().norm().item())
+        w1 = self.params.get("w1")
+        w2 = self.params.get("w2")
+        if w1 is None and w2 is None:
+            return 0.0
+        total = 0.0
+        if w1 is not None:
+            total += float(w1.detach().float().norm().item())
+        if w2 is not None:
+            total += float(w2.detach().float().norm().item())
+        return total
 
     def to(self, device: torch.device | str) -> "FastMemoryState":
         self.params = {k: v.to(device) for k, v in self.params.items()}
@@ -61,6 +81,7 @@ class FastMemoryState:
     def save(self, path: str) -> None:
         torch.save(
             {
+                "version": self.version,
                 "kind": self.kind,
                 "params": {k: v.detach().cpu() for k, v in self.params.items()},
                 "updates": self.updates,
@@ -74,6 +95,14 @@ class FastMemoryState:
     @classmethod
     def load(cls, path: str) -> "FastMemoryState":
         payload = torch.load(path, map_location="cpu", weights_only=True)
+        version = int(payload.get("version", 1))
+        if version > STATE_VERSION:
+            raise ValueError(
+                f"fast-memory state version {version} is newer than supported "
+                f"version {STATE_VERSION}"
+            )
+        # Version 1 payloads are structurally compatible; loading them upgrades
+        # the in-memory version and preserves their metadata.
         return cls(
             kind=payload["kind"],
             params=payload["params"],
@@ -81,6 +110,7 @@ class FastMemoryState:
             adapt_seconds=float(payload.get("adapt_seconds", 0.0)),
             last_loss=payload.get("last_loss"),
             metadata=payload.get("metadata", {}),
+            version=STATE_VERSION,
         )
 
 
@@ -105,6 +135,7 @@ class TTTLinear(nn.Module):
         decay: float = 0.0,
         init_scale: float = 0.02,
         inner_optimizer: str = "adam",
+        norm_max: float = 0.0,
     ) -> None:
         super().__init__()
         self.in_dim = in_dim
@@ -115,6 +146,7 @@ class TTTLinear(nn.Module):
         self.weight_decay = weight_decay
         self.decay = decay
         self.inner_optimizer = inner_optimizer
+        self.norm_max = norm_max
         self.register_buffer(
             "init_weight", torch.randn(out_dim, in_dim) * init_scale
         )
@@ -189,12 +221,68 @@ class TTTLinear(nn.Module):
                     w = w * (1.0 - self.decay)
                 w = torch.nan_to_num(w, nan=0.0, posinf=10.0, neginf=-10.0).clamp(-10, 10)
                 b = torch.nan_to_num(b, nan=0.0, posinf=10.0, neginf=-10.0).clamp(-10, 10)
+                if self.norm_max > 0:
+                    wn = w.norm()
+                    if torch.isfinite(wn) and wn > self.norm_max:
+                        w = w * (self.norm_max / (wn + 1e-12))
             w = w.detach().requires_grad_(True)
             b = b.detach().requires_grad_(True)
             last_loss = float(loss.detach().item())
         state.params = {"weight": w.detach(), "bias": b.detach()}
         state.updates += 1
         state.last_loss = last_loss
+        state.metadata["weight_norm"] = float(w.detach().norm().item())
+        state.metadata["norm_max"] = self.norm_max
+        return state
+
+    def consolidate(
+        self,
+        state: FastMemoryState,
+        keys: torch.Tensor,
+        values: torch.Tensor,
+        ridge: float = 1e-3,
+    ) -> FastMemoryState:
+        """Closed-form ridge consolidation of stored key/value pairs.
+
+        The online Adam update is useful for streaming, but repeated gradient
+        steps on correlated short keys can leave residuals.  A ridge solve of
+        ``W [k; 1] = v`` gives the minimum-norm least-squares fast state for
+        the replay set.  ``ridge`` is an explicit L2 penalty, so consolidation
+        cannot blow up the state norm.
+        """
+        if state.kind != "ttt_linear":
+            raise ValueError("state kind is not ttt_linear")
+        if keys.ndim != 2 or values.ndim != 2:
+            raise ValueError("keys and values must be [N, dim]")
+        if keys.shape[0] != values.shape[0] or keys.shape[0] == 0:
+            raise ValueError("keys and values must have the same non-zero rows")
+        keys = torch.nan_to_num(keys.detach().float(), nan=0.0, posinf=0.0, neginf=0.0)
+        values = torch.nan_to_num(values.detach().float(), nan=0.0, posinf=0.0, neginf=0.0)
+        n, d = keys.shape
+        augmented = torch.cat(
+            [keys, torch.ones(n, 1, dtype=keys.dtype, device=keys.device)], dim=1
+        )
+        gram = augmented.t() @ augmented
+        gram = gram + max(0.0, float(ridge)) * torch.eye(
+            d + 1, dtype=keys.dtype, device=keys.device
+        )
+        rhs = augmented.t() @ values
+        solution = torch.linalg.solve(gram, rhs)
+        weight = solution[:d].t().contiguous()
+        bias = solution[d].contiguous()
+        if self.norm_max > 0:
+            wn = weight.norm()
+            if torch.isfinite(wn) and wn > self.norm_max:
+                weight = weight * (self.norm_max / (wn + 1e-12))
+        pred = F.linear(keys, weight, bias)
+        state.params = {"weight": weight.detach(), "bias": bias.detach()}
+        state.last_loss = float(F.mse_loss(pred, values).item())
+        state.metadata["weight_norm"] = float(weight.detach().norm().item())
+        state.metadata["norm_max"] = self.norm_max
+        state.metadata["consolidations"] = int(
+            state.metadata.get("consolidations", 0)
+        ) + 1
+        state.metadata["consolidation_ridge"] = float(ridge)
         return state
 
     def state_bytes(self, state: FastMemoryState) -> int:
@@ -220,6 +308,7 @@ class TTTMLP(nn.Module):
         weight_decay: float = 0.0,
         decay: float = 0.0,
         init_scale: float = 0.02,
+        norm_max: float = 0.0,
     ) -> None:
         super().__init__()
         self.in_dim = in_dim
@@ -230,6 +319,7 @@ class TTTMLP(nn.Module):
         self.clip = clip
         self.weight_decay = weight_decay
         self.decay = decay
+        self.norm_max = norm_max
         self.register_buffer("init_w1", torch.randn(hidden_dim, in_dim) * init_scale)
         self.register_buffer("init_b1", torch.zeros(hidden_dim))
         self.register_buffer("init_w2", torch.randn(out_dim, hidden_dim) * init_scale)
@@ -290,11 +380,21 @@ class TTTMLP(nn.Module):
                     p[name] = torch.nan_to_num(
                         p[name], nan=0.0, posinf=10.0, neginf=-10.0
                     ).clamp(-10, 10)
+                if self.norm_max > 0:
+                    total = p["w1"].norm() + p["w2"].norm()
+                    if torch.isfinite(total) and total > self.norm_max:
+                        scale = self.norm_max / (total + 1e-12)
+                        p["w1"] = p["w1"] * scale
+                        p["w2"] = p["w2"] * scale
             p = {k: v.detach().requires_grad_(True) for k, v in p.items()}
             last_loss = float(loss.detach().item())
         state.params = {k: v.detach() for k, v in p.items()}
         state.updates += 1
         state.last_loss = last_loss
+        state.metadata["weight_norm"] = float(
+            (state.params["w1"].norm() + state.params["w2"].norm()).item()
+        )
+        state.metadata["norm_max"] = self.norm_max
         return state
 
 
@@ -311,12 +411,14 @@ class AssociativeMemory(nn.Module):
         lr: float = 0.5,
         decay: float = 0.0,
         normalize: bool = True,
+        norm_max: float = 0.0,
     ) -> None:
         super().__init__()
         self.dim = dim
         self.lr = lr
         self.decay = decay
         self.normalize = normalize
+        self.norm_max = norm_max
         self.register_buffer("init_weight", torch.zeros(dim, dim))
 
     def init_state(self, device: torch.device | str = "cpu") -> FastMemoryState:
@@ -353,9 +455,15 @@ class AssociativeMemory(nn.Module):
         if self.decay:
             w = w * (1.0 - self.decay)
         w = torch.nan_to_num(w, nan=0.0, posinf=10.0, neginf=-10.0).clamp(-10, 10)
+        if self.norm_max > 0:
+            wn = w.norm()
+            if torch.isfinite(wn) and wn > self.norm_max:
+                w = w * (self.norm_max / (wn + 1e-12))
         state.params = {"weight": w}
         state.updates += 1
         state.last_loss = float(error.pow(2).mean().item())
+        state.metadata["weight_norm"] = float(w.detach().norm().item())
+        state.metadata["norm_max"] = self.norm_max
         return state
 
 
@@ -376,6 +484,7 @@ class FastWeightMemory(nn.Module):
                 weight_decay=cfg.memory_weight_decay,
                 decay=cfg.memory_decay,
                 inner_optimizer=cfg.memory_inner_optimizer,
+                norm_max=cfg.memory_norm_max,
             )
         elif self.kind == "ttt_mlp":
             self.backend = TTTMLP(
@@ -387,12 +496,14 @@ class FastWeightMemory(nn.Module):
                 clip=cfg.memory_clip,
                 weight_decay=cfg.memory_weight_decay,
                 decay=cfg.memory_decay,
+                norm_max=cfg.memory_norm_max,
             )
         elif self.kind == "associative":
             self.backend = AssociativeMemory(
                 cfg.memory_dim,
                 lr=max(cfg.memory_inner_lr, 0.1),
                 decay=cfg.memory_decay,
+                norm_max=cfg.memory_norm_max,
             )
         else:  # pragma: no cover - config validates this
             raise ValueError(f"unknown memory kind: {self.kind}")
@@ -411,6 +522,29 @@ class FastWeightMemory(nn.Module):
     ) -> FastMemoryState:
         start = time.perf_counter()
         state = self.backend.adapt(state, keys, values)
+        state.adapt_seconds += time.perf_counter() - start
+        return state
+
+    def consolidate(
+        self,
+        state: FastMemoryState,
+        keys: torch.Tensor,
+        values: torch.Tensor,
+        ridge: float | None = None,
+    ) -> FastMemoryState:
+        """Consolidate replay pairs into the bounded fast state."""
+        start = time.perf_counter()
+        if self.kind == "ttt_linear":
+            state = self.backend.consolidate(
+                state,
+                keys,
+                values,
+                ridge=self.cfg.memory_ridge if ridge is None else ridge,
+            )
+        else:
+            # Non-linear backends use their online update as a replay step;
+            # the bounded norm cap still applies.
+            state = self.backend.adapt(state, keys, values)
         state.adapt_seconds += time.perf_counter() - start
         return state
 

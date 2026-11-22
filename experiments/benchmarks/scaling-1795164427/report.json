@@ -1,0 +1,445 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "scaling-1795164427",
+  "suite": "scaling",
+  "created_at": 1795164841.8995008,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 1.52,
+    "process_rss_mb": 1289.7,
+    "timestamp": 1795164842.0029826
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": null,
+    "depths": null,
+    "modes": null,
+    "adaptive_max_steps": null,
+    "batch_size": 16,
+    "max_examples": 5,
+    "max_new_tokens": 12,
+    "repeats": 3,
+    "generation_repeats": 3,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "continual_domains": 3,
+    "continual_facts_per_domain": 20,
+    "consolidation_ridge": null,
+    "device": "cpu",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": null,
+    "mixed_easy_ratio": 0.7,
+    "compile_probe": true,
+    "presets": [
+      "15m",
+      "50m",
+      "125m"
+    ],
+    "precisions": [
+      "fp32",
+      "bf16",
+      "fp16"
+    ],
+    "scaling_seq_len": 32,
+    "scaling_batch_size": 1,
+    "scaling_steps": 2,
+    "scaling_warmup": 1,
+    "scaling_repeats": 2
+  },
+  "duration_seconds": 414.468,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": null,
+  "dataset": {
+    "task": "arith_add",
+    "split": "train",
+    "seed": 1337,
+    "seq_len": 16,
+    "batch_size": 1,
+    "recurrent_steps": 2
+  },
+  "task": "arith_add",
+  "results": [
+    {
+      "preset": "15m",
+      "target_parameters": 15000000,
+      "parameters": 15237365,
+      "parameters_millions": 15.237,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "fp32",
+      "supported": true,
+      "effective_precision": "fp32",
+      "autocast": false,
+      "precision_reason": null,
+      "grad_scaler": false,
+      "step_seconds": 0.114336,
+      "step_seconds_all": [
+        0.115822,
+        0.112851
+      ],
+      "tokens_per_second": 139.938,
+      "loss": 5.262716,
+      "losses_all": [
+        5.262716,
+        5.262716
+      ],
+      "finite": true,
+      "grad_norm": 22.482255,
+      "rss_mb": 308.6,
+      "error": null
+    },
+    {
+      "preset": "15m",
+      "target_parameters": 15000000,
+      "parameters": 15237365,
+      "parameters_millions": 15.237,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "bf16",
+      "supported": true,
+      "effective_precision": "bf16",
+      "autocast": true,
+      "precision_reason": "CPU bf16 autocast; ops run in bfloat16 with fp32 accumulation",
+      "grad_scaler": false,
+      "step_seconds": 3.174794,
+      "step_seconds_all": [
+        3.243276,
+        3.106313
+      ],
+      "tokens_per_second": 5.04,
+      "loss": 5.263108,
+      "losses_all": [
+        5.263108,
+        5.263108
+      ],
+      "finite": true,
+      "grad_norm": 22.512232,
+      "rss_mb": 344.2,
+      "error": null
+    },
+    {
+      "preset": "15m",
+      "target_parameters": 15000000,
+      "parameters": 15237365,
+      "parameters_millions": 15.237,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "fp16",
+      "supported": true,
+      "effective_precision": "fp16",
+      "autocast": true,
+      "precision_reason": "CPU fp16 autocast; ops run in half precision with fp32 accumulation",
+      "grad_scaler": false,
+      "step_seconds": 3.261561,
+      "step_seconds_all": [
+        3.150513,
+        3.372609
+      ],
+      "tokens_per_second": 4.906,
+      "loss": 5.262708,
+      "losses_all": [
+        5.262708,
+        5.262708
+      ],
+      "finite": true,
+      "grad_norm": 22.483836,
+      "rss_mb": 345.0,
+      "error": null
+    },
+    {
+      "preset": "50m",
+      "target_parameters": 50000000,
+      "parameters": 50107013,
+      "parameters_millions": 50.107,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "fp32",
+      "supported": true,
+      "effective_precision": "fp32",
+      "autocast": false,
+      "precision_reason": null,
+      "grad_scaler": false,
+      "step_seconds": 0.595229,
+      "step_seconds_all": [
+        0.580868,
+        0.60959
+      ],
+      "tokens_per_second": 26.88,
+      "loss": 5.755725,
+      "losses_all": [
+        5.755725,
+        5.755725
+      ],
+      "finite": true,
+      "grad_norm": 41.304335,
+      "rss_mb": 600.4,
+      "error": null
+    },
+    {
+      "preset": "50m",
+      "target_parameters": 50000000,
+      "parameters": 50107013,
+      "parameters_millions": 50.107,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "bf16",
+      "supported": true,
+      "effective_precision": "bf16",
+      "autocast": true,
+      "precision_reason": "CPU bf16 autocast; ops run in bfloat16 with fp32 accumulation",
+      "grad_scaler": false,
+      "step_seconds": 14.029818,
+      "step_seconds_all": [
+        14.546153,
+        13.513483
+      ],
+      "tokens_per_second": 1.14,
+      "loss": 5.754218,
+      "losses_all": [
+        5.754218,
+        5.754218
+      ],
+      "finite": true,
+      "grad_norm": 41.293114,
+      "rss_mb": 599.1,
+      "error": null
+    },
+    {
+      "preset": "50m",
+      "target_parameters": 50000000,
+      "parameters": 50107013,
+      "parameters_millions": 50.107,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "fp16",
+      "supported": true,
+      "effective_precision": "fp16",
+      "autocast": true,
+      "precision_reason": "CPU fp16 autocast; ops run in half precision with fp32 accumulation",
+      "grad_scaler": false,
+      "step_seconds": 16.023995,
+      "step_seconds_all": [
+        15.765061,
+        16.28293
+      ],
+      "tokens_per_second": 0.999,
+      "loss": 5.755434,
+      "losses_all": [
+        5.755434,
+        5.755434
+      ],
+      "finite": true,
+      "grad_norm": 41.300524,
+      "rss_mb": 599.1,
+      "error": null
+    },
+    {
+      "preset": "125m",
+      "target_parameters": 125000000,
+      "parameters": 123920165,
+      "parameters_millions": 123.92,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "fp32",
+      "supported": true,
+      "effective_precision": "fp32",
+      "autocast": false,
+      "precision_reason": null,
+      "grad_scaler": false,
+      "step_seconds": 1.087958,
+      "step_seconds_all": [
+        1.19116,
+        0.984756
+      ],
+      "tokens_per_second": 14.706,
+      "loss": 5.586657,
+      "losses_all": [
+        5.586657,
+        5.586657
+      ],
+      "finite": true,
+      "grad_norm": 71.387162,
+      "rss_mb": 1187.8,
+      "error": null
+    },
+    {
+      "preset": "125m",
+      "target_parameters": 125000000,
+      "parameters": 123920165,
+      "parameters_millions": 123.92,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "bf16",
+      "supported": true,
+      "effective_precision": "bf16",
+      "autocast": true,
+      "precision_reason": "CPU bf16 autocast; ops run in bfloat16 with fp32 accumulation",
+      "grad_scaler": false,
+      "step_seconds": 37.74419,
+      "step_seconds_all": [
+        42.257635,
+        33.230746
+      ],
+      "tokens_per_second": 0.424,
+      "loss": 5.583708,
+      "losses_all": [
+        5.583708,
+        5.583708
+      ],
+      "finite": true,
+      "grad_norm": 71.271364,
+      "rss_mb": 1317.4,
+      "error": null
+    },
+    {
+      "preset": "125m",
+      "target_parameters": 125000000,
+      "parameters": 123920165,
+      "parameters_millions": 123.92,
+      "device": "cpu",
+      "seq_len": 16,
+      "batch_size": 1,
+      "recurrent_steps": 2,
+      "warmup_steps": 1,
+      "repeats": 2,
+      "precision": "fp16",
+      "supported": true,
+      "effective_precision": "fp16",
+      "autocast": true,
+      "precision_reason": "CPU fp16 autocast; ops run in half precision with fp32 accumulation",
+      "grad_scaler": false,
+      "step_seconds": 51.339284,
+      "step_seconds_all": [
+        53.005222,
+        49.673347
+      ],
+      "tokens_per_second": 0.312,
+      "loss": 5.586179,
+      "losses_all": [
+        5.586179,
+        5.586179
+      ],
+      "finite": true,
+      "grad_norm": 71.383868,
+      "rss_mb": 1319.4,
+      "error": null
+    }
+  ],
+  "summary": {
+    "presets": {
+      "15m": {
+        "target_parameters": 15000000,
+        "parameters": 15237365,
+        "delta_pct": 1.582,
+        "within_5pct": true,
+        "hidden_dim": 624,
+        "layers": 2,
+        "max_steps": 4,
+        "parameter_bytes_fp32": 60949460,
+        "parameter_bytes_bf16": 30474730
+      },
+      "50m": {
+        "target_parameters": 50000000,
+        "parameters": 50107013,
+        "delta_pct": 0.214,
+        "within_5pct": true,
+        "hidden_dim": 1152,
+        "layers": 2,
+        "max_steps": 4,
+        "parameter_bytes_fp32": 200428052,
+        "parameter_bytes_bf16": 100214026
+      },
+      "125m": {
+        "target_parameters": 125000000,
+        "parameters": 123920165,
+        "delta_pct": -0.864,
+        "within_5pct": true,
+        "hidden_dim": 1824,
+        "layers": 2,
+        "max_steps": 4,
+        "parameter_bytes_fp32": 495680660,
+        "parameter_bytes_bf16": 247840330
+      }
+    },
+    "precisions_requested": [
+      "fp32",
+      "bf16",
+      "fp16"
+    ],
+    "device": "cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "cuda_note": "CUDA is not available in this PyTorch build; CPU rows only. No CUDA speedup is claimed.",
+    "all_finite": true,
+    "supported_rows": 9,
+    "unsupported_rows": 0,
+    "warmup_steps": 1,
+    "repeats": 2
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\scaling-1795164427\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\scaling-1795164427\\summary.csv"
+  }
+}

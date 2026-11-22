@@ -6,6 +6,7 @@ test example is ever used for training.
 """
 from __future__ import annotations
 
+import math
 import random
 import re
 from dataclasses import dataclass, field
@@ -292,9 +293,23 @@ class SyntheticDataset(Dataset):
         complexity: int | None = None,
         min_complexity: int = 1,
         max_complexity: int = 2,
+        complexity_mix: list[tuple[int, float]] | None = None,
     ) -> None:
         if task not in TASK_NAMES:
             raise ValueError(f"unknown task {task!r}")
+        if complexity is not None and complexity_mix is not None:
+            raise ValueError("pass either complexity or complexity_mix, not both")
+        if complexity_mix is not None:
+            if not complexity_mix:
+                raise ValueError("complexity_mix must not be empty")
+            total = sum(weight for _, weight in complexity_mix)
+            if total <= 0 or any(weight <= 0 for _, weight in complexity_mix):
+                raise ValueError("complexity_mix weights must be positive")
+            if any(level < 1 for level, _ in complexity_mix):
+                raise ValueError("complexity_mix levels must be >= 1")
+            complexity_mix = [
+                (int(level), float(weight) / total) for level, weight in complexity_mix
+            ]
         self.task = task
         self.split = split
         self.size = size
@@ -304,8 +319,35 @@ class SyntheticDataset(Dataset):
         self.complexity = complexity
         self.min_complexity = min_complexity
         self.max_complexity = max_complexity
+        self.complexity_mix = complexity_mix
+        self.complexity_counts: dict[int, int] = {}
         self.items: list[dict[str, Any]] = []
         self._build()
+
+    def _complexity_schedule(self, rng: random.Random) -> list[int] | None:
+        """Exact-count mixed schedule, shuffled with the dataset seed.
+
+        Flooring the weighted counts leaves a few slots; those go to the
+        largest fractional parts so a 70/30 request yields 70/30 exactly
+        whenever ``size`` is divisible by ten.
+        """
+        if self.complexity_mix is None:
+            return None
+        raw = [self.size * weight for _, weight in self.complexity_mix]
+        counts = [int(math.floor(value)) for value in raw]
+        remaining = self.size - sum(counts)
+        order = sorted(
+            range(len(raw)), key=lambda i: raw[i] - counts[i], reverse=True
+        )
+        for i in order[:remaining]:
+            counts[i] += 1
+        schedule = [
+            level
+            for (level, _), count in zip(self.complexity_mix, counts)
+            for _ in range(count)
+        ]
+        rng.shuffle(schedule)
+        return schedule
 
     def _build(self) -> None:
         rng = random.Random(self.seed + {"train": 0, "val": 100_003, "test": 200_003}[self.split])
@@ -314,12 +356,19 @@ class SyntheticDataset(Dataset):
             if self.task == "mixture"
             else [self.task]
         )
+        schedule = self._complexity_schedule(rng)
         for i in range(self.size):
             task = tasks[i % len(tasks)]
-            complexity = (
-                self.complexity
-                if self.complexity is not None
-                else rng.randint(self.min_complexity, self.max_complexity)
+            if schedule is not None:
+                complexity = schedule[i]
+            else:
+                complexity = (
+                    self.complexity
+                    if self.complexity is not None
+                    else rng.randint(self.min_complexity, self.max_complexity)
+                )
+            self.complexity_counts[complexity] = (
+                self.complexity_counts.get(complexity, 0) + 1
             )
             ex = GENERATORS[task](rng, complexity)
             if task == "lm":
@@ -405,6 +454,7 @@ def make_dataset(
     complexity: int | None = None,
     min_complexity: int = 1,
     max_complexity: int = 2,
+    complexity_mix: list[tuple[int, float]] | None = None,
 ) -> SyntheticDataset:
     return SyntheticDataset(
         task=task,
@@ -416,6 +466,44 @@ def make_dataset(
         complexity=complexity,
         min_complexity=min_complexity,
         max_complexity=max_complexity,
+        complexity_mix=complexity_mix,
+    )
+
+
+def make_mixed_dataset(
+    task: str,
+    split: str,
+    size: int,
+    seed: int,
+    tokenizer: ByteTokenizer,
+    max_seq_len: int,
+    easy_ratio: float = 0.7,
+    easy_complexity: int = 1,
+    hard_complexity: int = 2,
+) -> SyntheticDataset:
+    """70/30-style mixed-difficulty split with exact stratum counts.
+
+    ``easy_ratio`` is the fraction of examples at ``easy_complexity``; the
+    remainder use ``hard_complexity``.  The composition is exact up to the
+    largest-remainder rounding implemented by :class:`SyntheticDataset`.
+    """
+    if not 0.0 < easy_ratio < 1.0:
+        raise ValueError("easy_ratio must be in (0, 1)")
+    if easy_complexity == hard_complexity:
+        raise ValueError("easy_complexity and hard_complexity must differ")
+    return make_dataset(
+        task=task,
+        split=split,
+        size=size,
+        seed=seed,
+        tokenizer=tokenizer,
+        max_seq_len=max_seq_len,
+        complexity_mix=[
+            (easy_complexity, easy_ratio),
+            (hard_complexity, 1.0 - easy_ratio),
+        ],
+        min_complexity=min(easy_complexity, hard_complexity),
+        max_complexity=max(easy_complexity, hard_complexity),
     )
 
 
@@ -428,5 +516,9 @@ def dataset_manifest(ds: SyntheticDataset) -> dict[str, Any]:
         "complexity": ds.complexity,
         "min_complexity": ds.min_complexity,
         "max_complexity": ds.max_complexity,
+        "complexity_mix": ds.complexity_mix,
+        "complexity_counts": {
+            str(level): count for level, count in sorted(ds.complexity_counts.items())
+        },
         "max_seq_len": ds.max_seq_len,
     }

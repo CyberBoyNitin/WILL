@@ -38,15 +38,23 @@ class HaltingGate(nn.Module):
         hidden: torch.Tensor,
         step_emb: torch.Tensor,
         context: torch.Tensor | None = None,
+        context_proj: torch.Tensor | None = None,
+        step_proj: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if step_emb.ndim == 1:
             step_emb = (
                 step_emb.view(1, 1, -1) if hidden.ndim == 3 else step_emb
             )
-        c = (
-            self.context_proj(context)
-            if context is not None
-            else torch.zeros_like(hidden)
+        if context_proj is not None:
+            c = context_proj
+        elif context is not None:
+            c = self.context_proj(context)
+        else:
+            c = torch.zeros_like(hidden)
+        step_term = (
+            self.step_proj(step_emb).expand_as(hidden)
+            if step_proj is None
+            else step_proj
         )
-        x = torch.cat([self.norm(hidden), self.step_proj(step_emb).expand_as(hidden), c], dim=-1)
+        x = torch.cat([self.norm(hidden), step_term, c], dim=-1)
         return torch.sigmoid(self.net(x)).squeeze(-1)

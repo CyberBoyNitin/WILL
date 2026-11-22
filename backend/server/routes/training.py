@@ -83,6 +83,8 @@ def _build_job(services: Services, req: TrainRequest):
             "history": metrics.get("history", []),
             "datasets": metrics.get("datasets", {}),
             "training_config": metrics.get("training_config", {}),
+            "precision": metrics.get("precision"),
+            "compilation": metrics.get("compilation"),
             "checkpoint": checkpoint,
         }
 
@@ -102,6 +104,10 @@ def _build_job(services: Services, req: TrainRequest):
         "ponder_warmup_epochs": req.ponder_warmup_epochs,
         "min_complexity": req.min_complexity,
         "max_complexity": req.max_complexity,
+        "mixed_easy_ratio": req.mixed_easy_ratio,
+        "precision": req.precision,
+        "torch_compile": req.torch_compile,
+        "compile_mode": req.compile_mode,
         "seed": req.seed,
         "checkpoint_name": run_name,
     }

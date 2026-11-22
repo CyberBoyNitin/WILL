@@ -49,7 +49,9 @@ def estimate_forward_macs(
     # the actual block: context projection + context gate + step projection +
     # gated FFN.
     f = cfg.ff_mult * d
-    block_per_token = 4 * d * d + 2 * d * f + 2 * d * d
+    # Per recurrent_block.py forward: context_proj(d²) + context_gate(2d²) +
+    # step_proj(d²) + ff_in(2df) + ff_out(df) = 4d² + 3df per token.
+    block_per_token = 4 * d * d + 3 * d * f
     recurrent = int(token_evaluations * block_per_token)
     head = int(seq_len * d * cfg.vocab_size)
     memory = int(seq_len * d * cfg.memory_dim * 3)

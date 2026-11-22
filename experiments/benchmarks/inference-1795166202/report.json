@@ -1,0 +1,200 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "inference-1795166202",
+  "suite": "inference",
+  "created_at": 1795166225.9107401,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 2.33,
+    "process_rss_mb": 394.8,
+    "timestamp": 1795166225.9890666
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": null,
+    "depths": [
+      4
+    ],
+    "modes": [
+      "adaptive_hard"
+    ],
+    "adaptive_max_steps": null,
+    "batch_size": 16,
+    "max_examples": 5,
+    "max_new_tokens": 8,
+    "repeats": 50,
+    "generation_repeats": 3,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "continual_domains": 3,
+    "continual_facts_per_domain": 20,
+    "consolidation_ridge": null,
+    "device": "cpu",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": "add-single-act-final",
+    "mixed_easy_ratio": 0.7,
+    "compile_probe": true,
+    "presets": null,
+    "precisions": null,
+    "scaling_seq_len": 32,
+    "scaling_batch_size": 1,
+    "scaling_steps": 2,
+    "scaling_warmup": 1,
+    "scaling_repeats": 2,
+    "timing_note": "high priority, affinity 0xE (logical CPUs 1-3)"
+  },
+  "duration_seconds": 23.125,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "add-single-act-final",
+  "results": [
+    {
+      "mode": "fixed_depth",
+      "max_steps": 4,
+      "prompt_tokens": 32,
+      "max_new_tokens": 8,
+      "generated_tokens": 1,
+      "mean_depth": 4.0,
+      "token_evaluations": 128,
+      "estimated_macs": 28938240,
+      "latency_ms_p50": 16.482,
+      "latency_ms_p95": 42.618,
+      "tokens_per_second": 60.671,
+      "repeats": 50,
+      "process_rss_mb": 390.4
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 4,
+      "prompt_tokens": 64,
+      "max_new_tokens": 8,
+      "generated_tokens": 1,
+      "mean_depth": 4.0,
+      "token_evaluations": 256,
+      "estimated_macs": 56872960,
+      "latency_ms_p50": 15.974,
+      "latency_ms_p95": 25.853,
+      "tokens_per_second": 62.602,
+      "repeats": 50,
+      "process_rss_mb": 391.4
+    },
+    {
+      "mode": "fixed_depth",
+      "max_steps": 4,
+      "prompt_tokens": 128,
+      "max_new_tokens": 8,
+      "generated_tokens": 1,
+      "mean_depth": 4.0,
+      "token_evaluations": 512,
+      "estimated_macs": 114315264,
+      "latency_ms_p50": 20.755,
+      "latency_ms_p95": 34.516,
+      "tokens_per_second": 48.181,
+      "repeats": 50,
+      "process_rss_mb": 393.8
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 3,
+      "prompt_tokens": 32,
+      "max_new_tokens": 8,
+      "generated_tokens": 1,
+      "mean_depth": 2.0303,
+      "token_evaluations": 65,
+      "estimated_macs": 18616320,
+      "latency_ms_p50": 12.427,
+      "latency_ms_p95": 23.435,
+      "tokens_per_second": 80.472,
+      "repeats": 50,
+      "process_rss_mb": 394.6
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 3,
+      "prompt_tokens": 64,
+      "max_new_tokens": 8,
+      "generated_tokens": 1,
+      "mean_depth": 2.0154,
+      "token_evaluations": 129,
+      "estimated_macs": 36065280,
+      "latency_ms_p50": 14.128,
+      "latency_ms_p95": 21.865,
+      "tokens_per_second": 70.78,
+      "repeats": 50,
+      "process_rss_mb": 394.6
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 3,
+      "prompt_tokens": 128,
+      "max_new_tokens": 8,
+      "generated_tokens": 1,
+      "mean_depth": 2.0233,
+      "token_evaluations": 259,
+      "estimated_macs": 72863744,
+      "latency_ms_p50": 17.491,
+      "latency_ms_p95": 67.833,
+      "tokens_per_second": 57.174,
+      "repeats": 50,
+      "process_rss_mb": 394.8
+    }
+  ],
+  "summary": {
+    "configs": 2,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "repeats": 50,
+    "fastest_p50_ms": 12.427,
+    "slowest_p50_ms": 20.755,
+    "parameters": 581765,
+    "compilation": {
+      "requested": true,
+      "compiled": false,
+      "used": "eager",
+      "mode": "reduce-overhead",
+      "checked": false,
+      "max_abs_diff": null,
+      "error": "InductorError: InvalidCxxCompiler: Compiler: cl is not found.\n\nSet TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS=\"+dynamo\"\n",
+      "reason": "compilation probe failed; eager fallback",
+      "generation_path": "eager",
+      "seconds": 17.077,
+      "applied_to_generation": false,
+      "note": "Probe only: the KV-cached generation path stays eager, so this status is not a latency claim."
+    }
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\inference-1795166202\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\inference-1795166202\\summary.csv"
+  }
+}

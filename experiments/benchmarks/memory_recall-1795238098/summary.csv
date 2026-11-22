@@ -1,0 +1,6 @@
+adapt_round,adapt_seconds,hybrid_recall_at_1,lexical_recall_at_1,neural_recall_at_1,session_updates,state_bytes,state_updates
+0,0.2278,0.4,1.0,0.4,3,29440,3
+1,0.2323,0.9,1.0,0.9,4,29440,4
+5,0.2432,0.85,1.0,0.85,8,29440,8
+10,0.2587,0.9,1.0,0.9,13,29440,13
+20,0.2923,1.0,1.0,1.0,23,29440,23

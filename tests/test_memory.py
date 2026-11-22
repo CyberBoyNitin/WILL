@@ -64,6 +64,27 @@ def test_fast_state_save_restore(tmp_path):
         assert torch.allclose(loaded.params[key], state.params[key])
 
 
+def test_fast_state_versioned_ridge_consolidation_and_norm_cap(tmp_path):
+    torch.manual_seed(11)
+    d = 16
+    ttt = TTTLinear(d, d, lr=0.05, steps=2, norm_max=50.0)
+    state = ttt.init_state()
+    keys = F.normalize(torch.randn(10, d), dim=-1)
+    values = F.normalize(torch.randn(10, d), dim=-1)
+    ttt.consolidate(state, keys, values, ridge=1e-4)
+    mse = F.mse_loss(ttt.read(state, keys), values).item()
+    assert mse < 1e-4, mse
+    assert state.metadata["consolidations"] == 1
+    assert state.version == 2
+    assert state.weight_norm() <= 50.0 + 1e-5
+    path = tmp_path / "consolidated.pt"
+    state.save(str(path))
+    loaded = FastMemoryState.load(str(path))
+    assert loaded.version == 2
+    assert loaded.metadata["consolidations"] == 1
+    assert torch.allclose(loaded.params["weight"], state.params["weight"])
+
+
 def test_adapting_memory_does_not_mutate_slow_weights(tiny_model):
     before = {name: p.detach().clone() for name, p in tiny_model.named_parameters()}
     state = tiny_model.memory.init_state()

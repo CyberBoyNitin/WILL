@@ -42,12 +42,20 @@ class RecurrentReasoningBlock(nn.Module):
         hidden: torch.Tensor,
         context: torch.Tensor,
         step_emb: torch.Tensor,
+        context_proj: torch.Tensor | None = None,
+        context_gate_c: torch.Tensor | None = None,
+        step_proj: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Refine hidden states by one step.
 
         hidden: [N, D] (gathered active positions) or [B, T, D]
         context: same leading shape as hidden
         step_emb: [D] or [N, D]
+
+        ``context_proj`` and ``context_gate_c`` let a caller that reuses the
+        same context across several steps cache the context projections.  This
+        removes two small matrix multiplies per active token per step without
+        changing the computation.
         """
         if hidden.shape != context.shape:
             raise ValueError("hidden and context must have identical shapes")
@@ -60,10 +68,18 @@ class RecurrentReasoningBlock(nn.Module):
                 raise ValueError("per-token step embeddings must match batch size")
 
         h = self.in_norm(hidden)
-        c = self.context_proj(context)
-        gate = torch.sigmoid(self.context_gate(torch.cat([h, c], dim=-1)))
+        c = self.context_proj(context) if context_proj is None else context_proj
+        if context_gate_c is None:
+            gate = torch.sigmoid(self.context_gate(torch.cat([h, c], dim=-1)))
+        else:
+            d = h.shape[-1]
+            gate = torch.sigmoid(
+                F.linear(h, self.context_gate.weight[:, :d]) + context_gate_c
+            )
         x = h + gate * c
-        x = x + self.step_proj(step_emb)
+        x = x + (
+            self.step_proj(step_emb) if step_proj is None else step_proj
+        )
         u = self.ff_norm(x)
         value, ffn_gate = self.ff_in(u).chunk(2, dim=-1)
         update = self.ff_out(F.gelu(ffn_gate) * value)

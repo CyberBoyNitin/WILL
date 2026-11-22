@@ -25,7 +25,18 @@ class InputEmbedding(nn.Module):
             self.token_embedding.weight[0].zero_()
         nn.init.normal_(self.position_embedding.weight, mean=0.0, std=0.02)
 
-    def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        positions: torch.Tensor | None = None,
+        start_pos: int = 0,
+    ) -> torch.Tensor:
+        """Embed tokens.
+
+        ``start_pos`` enables incremental decoding.  ``positions`` can be
+        supplied for batches whose rows have different absolute positions
+        (for example left-padded generation batches).
+        """
         if input_ids.ndim != 2:
             raise ValueError("input_ids must have shape [batch, seq]")
         b, t = input_ids.shape
@@ -33,6 +44,20 @@ class InputEmbedding(nn.Module):
             raise ValueError(
                 f"sequence length {t} exceeds max_seq_len {self.cfg.max_seq_len}"
             )
-        positions = torch.arange(t, device=input_ids.device).unsqueeze(0).expand(b, t)
+        if positions is None:
+            positions = (
+                torch.arange(start_pos, start_pos + t, device=input_ids.device)
+                .unsqueeze(0)
+                .expand(b, t)
+            )
+        else:
+            if positions.shape != input_ids.shape:
+                raise ValueError("positions must have the same shape as input_ids")
+            positions = positions.to(device=input_ids.device, dtype=torch.long)
+        if int(positions.max().item()) >= self.cfg.max_seq_len:
+            raise ValueError(
+                f"position {int(positions.max().item())} exceeds max_seq_len "
+                f"{self.cfg.max_seq_len}"
+            )
         x = self.token_embedding(input_ids) + self.position_embedding(positions)
         return self.dropout(self.norm(x))
