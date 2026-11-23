@@ -21,10 +21,12 @@ model:
   tie_embeddings: false
 
 training:
+  # Template defaults. The recorded evidence run used --train-size 1600 and
+  # the phase budgets in scripts/train_will8m.py on this CPU-only machine.
   task: arith_add
-  train_size: 6000
-  val_size: 400
-  test_size: 400
+  train_size: 1600
+  val_size: 200
+  test_size: 200
   epochs: 20
   batch_size: 32
   lr: 5e-4

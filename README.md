@@ -661,7 +661,9 @@ The v4 pass targeted three failure modes from `synergy_v3_eval-90552d60aa6f`:
 unconditional ponder pressure, a scalar memory gate, and a capacity-starved
 581K model. The implementation is in `backend/engine/model.py`,
 `backend/training/losses.py`, `backend/memory/memory_encoder.py`, and
-`configs/will_8m.yaml`; the curriculum is `scripts/train_will8m.py`.
+`configs/will_8m.yaml`; the curriculum is `scripts/train_will8m.py`. The
+recorded evidence run used 1,600 mixed examples (800 hard) and a reduced CPU
+budget; the config is a template, not a claim that the full budget was run.
 
 What changed:
 
