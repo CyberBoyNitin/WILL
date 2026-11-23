@@ -90,6 +90,32 @@ class MemoryEncoder(nn.Module):
         return k.squeeze(1), v.squeeze(1)
 
 
+class MemoryQueryBridge(nn.Module):
+    """Refine the writer-aligned query and gate retrieval per channel.
+
+    The base query is the pooled key produced by ``MemoryEncoder``, which makes
+    retrieval exact against the Test 5/6 writer at initialisation.  A two-layer
+    query MLP supplies a learned correction in the same ``memory_dim`` space.
+    The retrieved vector is multiplied by a vector-wise sigmoid gate and
+    projected back to hidden_dim, so the recurrent block receives a
+    channel-wise memory residual instead of a single scalar gain.
+    """
+
+    def __init__(self, cfg: ModelConfig) -> None:
+        super().__init__()
+        d, m = cfg.hidden_dim, cfg.memory_dim
+        self.query = nn.Sequential(nn.Linear(d, m), nn.SiLU(), nn.Linear(m, m))
+        self.gate = nn.Linear(d, m)
+        self.readout = nn.Linear(m, d)
+
+    def forward(
+        self, hidden: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        query = F.normalize(self.query(hidden), dim=-1)
+        gate = torch.sigmoid(self.gate(hidden))
+        return query, gate
+
+
 class MemoryIntegrationGate(nn.Module):
     """Learned gate controlling how much retrieved memory enters the state.
 

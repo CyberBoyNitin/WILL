@@ -114,7 +114,10 @@ def load_model_from_checkpoint(
     payload = load_checkpoint(path, map_location="cpu")
     cfg = ModelConfig(**payload["model_config"])
     model = WILLModel(cfg)
-    model.load_state_dict(payload["model_state"])
+    # v4 replaces the scalar ``mem_gate`` with ``memory_bridge``,
+    # ``query_scale`` and ``memory_scale``.  Older checkpoints lack those keys;
+    # strict=False loads them with the new defaults.
+    model.load_state_dict(payload["model_state"], strict=False)
     model.to(device)
     model.eval()
     return model, cfg, payload

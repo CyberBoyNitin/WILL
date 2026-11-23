@@ -655,6 +655,55 @@ within a report rather than across unrelated runs.
 
 ---
 
+## v4 architecture and WILL-8M (negative result)
+
+The v4 pass targeted three failure modes from `synergy_v3_eval-90552d60aa6f`:
+unconditional ponder pressure, a scalar memory gate, and a capacity-starved
+581K model. The implementation is in `backend/engine/model.py`,
+`backend/training/losses.py`, `backend/memory/memory_encoder.py`, and
+`configs/will_8m.yaml`; the curriculum is `scripts/train_will8m.py`.
+
+What changed:
+
+- **Accuracy-gated ponder with a depth target.** The early-exit reward applies
+  only to fully-correct sequences, and incorrect sequences target `max_steps`
+  through a per-token depth loss. A pure `exp(-CE)` gate was measured and
+  rejected: hard examples are often *confidently wrong* (median CE `0.004`), so
+  confidence alone cannot detect them.
+- **Writer-aligned memory query.** The query is pooled from the same
+  `memory_encoder` key path used by the Test 5/6 writer, then refined by a
+  two-layer `nn.Linear -> SiLU -> nn.Linear` bridge and gated per channel. The
+  residual is layer-normalised with a learned scale. The Test 6 writer is the
+  exact closed-form ridge consolidation used by Test 5
+  (`writer: test5_ridge_consolidate`).
+- **WILL-8M.** `configs/will_8m.yaml` builds 8,044,903 slow parameters
+  (hidden 400, 2 context layers, `memory_dim=128`) with a 66,048-byte fast state.
+
+Measured result, `will8m_eval-cbb15aeef50f` (5 warmups, 50 timed runs,
+CPU, same process):
+
+| Checkpoint | Easy acc | Easy depth | Hard acc | Hard depth | Easy p50 | Hard p50 |
+|---|---:|---:|---:|---:|---:|---:|
+| old `add-mixed-70-30-v2-final` | 100.0% | 2.107 | 11.0% | 2.139 | 112.47 ms | 158.66 ms |
+| new `will-8m-synergy-v1` | 80.0% | 1.268 | 13.0% | 1.891 | 785.30 ms | 1103.51 ms |
+
+| Test 6 | Cold acc | Warm acc | Cold depth | Warm depth | Cold p50 | Warm p50 | Δ depth | Δ p50 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| old | 13.33% | 13.33% | 2.138 | 2.128 | 79.86 ms | 104.99 ms | -0.010 | +25.13 ms |
+| new | 10.00% | 16.67% | 1.920 | 1.430 | 365.52 ms | 456.80 ms | -0.490 | +91.28 ms |
+
+The targets were **not** met: easy accuracy `80% < 98%`, hard accuracy
+`13% < 85%`, hard depth `1.89 < 2.8`, and Test 6 warm accuracy
+`16.67% < 90%`. The new model also costs roughly 7x the old p50 latency
+because it is 13x larger and runs four adaptive steps. The memory path is
+mechanically correct (query-key and retrieved-value cosine both `1.0` under the
+ridge writer), and warm memory now improves Test 6 accuracy (`10% -> 16.67%`)
+and reduces depth by `0.49`; the remaining bottleneck is decoding a pooled
+value vector into a multi-digit answer, not retrieval. The earlier v3 evidence
+remains at `synergy_v3_eval-90552d60aa6f`.
+
+---
+
 ## Limitations
 
 - **Synthetic tasks only.** The checkpoints are trained on generated addition,
@@ -696,6 +745,18 @@ within a report rather than across unrelated runs.
   yield no text.
 - **Single shared API key.** `WILL_API_KEY` is authentication for a trusted local
   deployment, not a multi-user authorization system.
+- **WILL-8M did not meet its targets.** Easy accuracy is 80%, hard accuracy is
+  13%, and Test 6 warm accuracy is 16.67% in
+  `will8m_eval-cbb15aeef50f`. The depth and accuracy goals are research
+  results, not benchmark artifacts; do not cite the model as solving two-digit
+  addition.
+- **Memory retrieval is exact; memory decoding is not.** The ridge writer
+  retrieves the stored value with cosine `1.0`, but the pooled value vector is
+  not reliably decoded into a multi-digit answer. This is the main open
+  bottleneck for Test 6.
+- **Size and latency are not comparable across checkpoints.** WILL-8M is 13x
+  larger than the 581K reference and is roughly 7x slower at p50 on this CPU.
+  The table reports the measurement; it is not a speed claim.
 
 ---
 

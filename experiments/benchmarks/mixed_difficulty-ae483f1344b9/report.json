@@ -1,0 +1,218 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "mixed_difficulty-ae483f1344b9",
+  "suite": "mixed_difficulty",
+  "created_at": 1795416165.7210484,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 1.34,
+    "process_rss_mb": 250.0,
+    "timestamp": 1795416165.8275247
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": 200,
+    "depths": [
+      3
+    ],
+    "modes": [
+      "adaptive_hard"
+    ],
+    "adaptive_max_steps": null,
+    "batch_size": 16,
+    "max_examples": 0,
+    "max_new_tokens": 12,
+    "repeats": 3,
+    "generation_repeats": 5,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "continual_domains": 3,
+    "continual_facts_per_domain": 20,
+    "consolidation_ridge": null,
+    "device": "cpu",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": "add-mixed-70-30-v2-final",
+    "mixed_easy_ratio": 0.5,
+    "compile_probe": false,
+    "presets": null,
+    "precisions": null,
+    "scaling_seq_len": 32,
+    "scaling_batch_size": 1,
+    "scaling_steps": 2,
+    "scaling_warmup": 1,
+    "scaling_repeats": 2
+  },
+  "duration_seconds": 18.039,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "add-mixed-70-30-v2-final",
+  "dataset": {
+    "task": "arith_add",
+    "split": "test",
+    "size": 200,
+    "seed": 1337,
+    "easy_ratio_requested": 0.5,
+    "easy_ratio_observed": 0.5,
+    "complexity_counts": {
+      "1": 100,
+      "2": 100
+    }
+  },
+  "task": "arith_add",
+  "results": [
+    {
+      "mode": "fixed_depth",
+      "max_steps": 3,
+      "accuracy": 0.55,
+      "correct": 110,
+      "count": 200,
+      "loss": 0.44189610757118414,
+      "perplexity": 1.5556541113542082,
+      "eval_mean_depth": 3.0,
+      "generation_mean_depth": 3.0,
+      "token_evaluations": 10215,
+      "generation_token_evaluations": 10209,
+      "estimated_macs": 1721492224,
+      "estimated_flops": 3442984448,
+      "generation_estimated_macs": 1848660480,
+      "loss_seconds": 0.2520282999612391,
+      "generation_seconds": 0.645519100013189,
+      "generation_seconds_all": [
+        0.795591,
+        0.545104,
+        0.854355,
+        0.645519,
+        0.602935
+      ],
+      "generation_repeats": 5,
+      "generation_examples": [],
+      "strata": {
+        "trivial": {
+          "complexity": 1,
+          "count": 100,
+          "accuracy": 1.0,
+          "correct": 100,
+          "loss": 0.03677530474960804,
+          "perplexity": 1.0374598823385475,
+          "generation_mean_depth": 3.0,
+          "generation_token_evaluations": 4620,
+          "generation_seconds": 0.26261900004465133
+        },
+        "hard": {
+          "complexity": 2,
+          "count": 100,
+          "accuracy": 0.1,
+          "correct": 10,
+          "loss": 0.7082768897487692,
+          "perplexity": 2.0304894852952713,
+          "generation_mean_depth": 3.0,
+          "generation_token_evaluations": 5589,
+          "generation_seconds": 0.2707855999469757
+        }
+      },
+      "trivial_accuracy": 1.0,
+      "hard_accuracy": 0.1,
+      "hard_minus_trivial_accuracy": -0.9
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 3,
+      "accuracy": 0.555,
+      "correct": 111,
+      "count": 200,
+      "loss": 0.4400323331848649,
+      "perplexity": 1.552757423292509,
+      "eval_mean_depth": 2.128979368209839,
+      "generation_mean_depth": 2.1243408043297256,
+      "token_evaluations": 7250,
+      "generation_token_evaluations": 7243,
+      "estimated_macs": 1235706624,
+      "estimated_flops": 2471413248,
+      "generation_estimated_macs": 1362711040,
+      "loss_seconds": 0.5092748000752181,
+      "generation_seconds": 0.8258890999713913,
+      "generation_seconds_all": [
+        0.825889,
+        1.047016,
+        1.391325,
+        0.523317,
+        0.585093
+      ],
+      "generation_repeats": 5,
+      "generation_examples": [],
+      "strata": {
+        "trivial": {
+          "complexity": 1,
+          "count": 100,
+          "accuracy": 1.0,
+          "correct": 100,
+          "loss": 0.036779677495360374,
+          "perplexity": 1.0374644188967599,
+          "generation_mean_depth": 2.1073170152439022,
+          "generation_token_evaluations": 3245,
+          "generation_seconds": 0.23647449992131442
+        },
+        "hard": {
+          "complexity": 2,
+          "count": 100,
+          "accuracy": 0.11,
+          "correct": 11,
+          "loss": 0.7051847484013806,
+          "perplexity": 2.0242206219030927,
+          "generation_mean_depth": 2.1385633642384105,
+          "generation_token_evaluations": 3998,
+          "generation_seconds": 0.2929121000925079
+        }
+      },
+      "trivial_accuracy": 1.0,
+      "hard_accuracy": 0.11,
+      "hard_minus_trivial_accuracy": -0.89
+    }
+  ],
+  "summary": {
+    "best_accuracy": 0.555,
+    "best_config": "adaptive_hard@3",
+    "best_hard_accuracy": 0.11,
+    "best_hard_config": "adaptive_hard@3",
+    "easy_ratio_requested": 0.5,
+    "easy_ratio_observed": 0.5,
+    "composition_ok": true,
+    "strata": {
+      "trivial": 100,
+      "hard": 100
+    },
+    "parameters": 610759
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\mixed_difficulty-ae483f1344b9\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\mixed_difficulty-ae483f1344b9\\summary.csv"
+  }
+}

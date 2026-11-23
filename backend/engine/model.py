@@ -11,6 +11,7 @@ from typing import Any, Callable
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from backend.config import ModelConfig
 from backend.engine.adaptive_controller import (
@@ -30,7 +31,11 @@ from backend.engine.metrics import (
 from backend.engine.output_head import AdaptiveOutputAggregator, OutputProjection
 from backend.engine.recurrent_block import RecurrentReasoningBlock
 from backend.memory.fast_memory import FastMemoryState, FastWeightMemory
-from backend.memory.memory_encoder import MemoryEncoder, MemoryIntegrationGate
+from backend.memory.memory_encoder import (
+    MemoryEncoder,
+    MemoryIntegrationGate,
+    MemoryQueryBridge,
+)
 
 
 def _init_weights(module: nn.Module) -> None:
@@ -59,7 +64,16 @@ class WILLModel(nn.Module):
         )
         self.memory_encoder = MemoryEncoder(cfg)
         self.memory = FastWeightMemory(cfg)
+        # Retained so legacy checkpoints with ``memory_gate.*`` keys still load;
+        # the v4 path below does not use it.
         self.memory_gate = MemoryIntegrationGate(cfg)
+        # v4: learned query bridge into fast-weight key space with a
+        # vector-wise sigmoid gate, replacing the scalar mem_gate.
+        self.memory_bridge = MemoryQueryBridge(cfg)
+        # Starts at zero so retrieval initially uses the writer's exact key
+        # vector; training can learn a small query-space correction.
+        self.query_scale = nn.Parameter(torch.tensor(0.0))
+        self.memory_scale = nn.Parameter(torch.tensor(1.0))
         self.output_projection = OutputProjection(
             cfg, token_embedding=self.embedding.token_embedding
         )
@@ -122,37 +136,67 @@ class WILLModel(nn.Module):
         self,
         context: torch.Tensor,
         input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
         memory_state: FastMemoryState | None,
         memory_enabled: bool | None,
-    ) -> tuple[torch.Tensor, dict[str, Any]]:
+    ) -> tuple[torch.Tensor, dict[str, Any], torch.Tensor | None]:
         use_memory = memory_state is not None and (
             True if memory_enabled is None else memory_enabled
         )
         if use_memory:
             assert memory_state is not None
+            # The Test 5 writer stores a *pooled* key for the whole prompt.
+            # Query the fast weights with a matching mask-aware pooled state,
+            # then broadcast the retrieved residual over the sequence.  Using a
+            # per-token query here made the learned key space unreachable.
+            mask = attention_mask.to(context.dtype).unsqueeze(-1)
+            lengths = attention_mask.sum(dim=1).clamp_min(1)
+            last_idx = (lengths - 1).long()
+            row = torch.arange(context.shape[0], device=context.device)
+            mean = (context * mask).sum(dim=1) / lengths.to(context.dtype).unsqueeze(1)
+            pooled_hidden = F.normalize(mean + context[row, last_idx], dim=-1)
+            # Writer-aligned key: the Test 5/6 writer pools the per-token keys
+            # from `memory_encoder`; reproduce that exact pooling here.
             keys, _ = self.memory_encoder(context, input_ids)
-            retrieved = self.memory.read(memory_state, keys)
-            context, gate = self.memory_gate(context, retrieved)
+            key_mask = attention_mask.unsqueeze(-1)
+            pos = torch.arange(1, context.shape[1] + 1, device=context.device)
+            pos = pos.view(1, -1, 1).to(keys.dtype)
+            denom = (pos * key_mask).sum(dim=1).clamp_min(1.0)
+            key_mean = (keys * pos * key_mask).sum(dim=1) / denom
+            key_last = keys[row, last_idx]
+            key_query = F.normalize(key_mean + key_last, dim=-1)
+            refine, gain = self.memory_bridge(pooled_hidden)
+            query = F.normalize(key_query + self.query_scale * refine, dim=-1)
+            retrieved = self.memory.read(memory_state, query)
+            mem_out = self.memory_bridge.readout(gain * retrieved)
+            # The raw readout is O(0.1) while the context is O(10), so a plain
+            # add is invisible.  Normalise the residual and learn its scale.
+            mem_out = F.layer_norm(
+                mem_out, (mem_out.shape[-1],)
+            ) * self.memory_scale
+            context = context + mem_out.unsqueeze(1)
             memory_stats = {
                 "enabled": True,
                 "kind": memory_state.kind,
                 "updates": memory_state.updates,
-                "gate_mean": float(gate.mean().detach().item()),
-                "gate_max": float(gate.max().detach().item()),
+                "gate_mean": float(gain.detach().mean().item()),
+                "gate_max": float(gain.detach().max().item()),
                 "retrieved_norm": float(
                     retrieved.detach().norm(dim=-1).mean().item()
                 ),
                 "state_bytes": memory_state.state_bytes(),
             }
         elif memory_state is not None:
+            query = None
             memory_stats = {
                 "enabled": False,
                 "kind": memory_state.kind,
                 "reason": "memory disabled for this execution mode",
             }
         else:
+            query = None
             memory_stats = {"enabled": False, "reason": "no memory state"}
-        return context, memory_stats
+        return context, memory_stats, query
 
     def _forward_context(
         self,
@@ -166,8 +210,8 @@ class WILLModel(nn.Module):
         halt_epsilon: float | None,
         mac_seq_len: int | None = None,
     ) -> tuple[torch.Tensor, dict[str, Any]]:
-        context, memory_stats = self._apply_memory(
-            context, input_ids, memory_state, memory_enabled
+        context, memory_stats, memory_query = self._apply_memory(
+            context, input_ids, controller_mask, memory_state, memory_enabled
         )
         output, stats = self.controller(
             context,
@@ -197,6 +241,10 @@ class WILLModel(nn.Module):
                 "params_trainable": params_trainable,
             }
         )
+        if memory_query is not None:
+            # Exposed for the Phase C query-alignment objective; it is a small
+            # [batch, memory_dim] tensor and is detached by the API serializer.
+            stats["memory_query"] = memory_query
         return logits, stats
 
     def forward(

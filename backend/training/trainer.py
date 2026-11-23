@@ -488,7 +488,8 @@ class Trainer:
                 with autocast_context(self.precision_plan):
                     logits, stats = self._train_forward(ids, mask)
                     loss, parts = total_loss(
-                        logits, labels, stats, ponder_lambda=ponder_lambda
+                        logits, labels, stats, ponder_lambda=ponder_lambda,
+                        accuracy_gated=self.cfg.accuracy_gated_ponder,
                     )
                 scaled_loss = loss / cfg.grad_accum
                 if self.scaler is not None:

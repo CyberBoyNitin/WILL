@@ -146,6 +146,7 @@ class TrainingConfig(BaseModel):
     warmup_steps: int = 20
     ponder_lambda: float = 0.02
     ponder_warmup_epochs: int = 0
+    accuracy_gated_ponder: bool = False
     memory_lambda: float = 0.0
     mode: Literal["fixed_depth", "adaptive_soft"] = "adaptive_soft"
     seed: int = 1337

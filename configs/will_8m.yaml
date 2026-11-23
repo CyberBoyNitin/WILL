@@ -1,0 +1,54 @@
+# WILL-8M: capacity upgrade for simultaneous arithmetic + memory routing.
+# Target ~8-10M slow parameters; fast state ~64 KB (memory_dim=128).
+profile: custom
+
+model:
+  hidden_dim: 400
+  n_heads: 8
+  context_layers: 2
+  context_ff_mult: 4
+  ff_mult: 4
+  max_seq_len: 256
+  dropout: 0.0
+  min_steps: 1
+  max_steps: 4
+  adaptive_inference_steps: 4
+  halt_epsilon: 0.05
+  memory_dim: 128
+  memory_kind: ttt_linear
+  memory_inner_steps: 2
+  memory_ridge: 1e-3
+  tie_embeddings: false
+
+training:
+  task: arith_add
+  train_size: 6000
+  val_size: 400
+  test_size: 400
+  epochs: 20
+  batch_size: 32
+  lr: 5e-4
+  weight_decay: 0.01
+  grad_clip: 1.0
+  grad_accum: 1
+  optimizer: adamw
+  scheduler: cosine
+  warmup_steps: 40
+  ponder_lambda: 0.02
+  ponder_warmup_epochs: 6
+  accuracy_gated_ponder: true
+  memory_lambda: 0.0
+  mode: adaptive_soft
+  seed: 1337
+  eval_every: 1
+  early_stop_patience: 0
+  max_steps: 4
+  min_complexity: 1
+  max_complexity: 2
+  mixed_easy_ratio: 0.5
+  precision: fp32
+  torch_compile: false
+  checkpoint_name: will-8m-synergy-v1
+
+server:
+  device: cpu

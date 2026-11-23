@@ -1,0 +1,127 @@
+{
+  "format": "will-lead-eval-v1",
+  "run_id": "synergy_v3_eval-90552d60aa6f",
+  "created_at": 1795333340.7447731,
+  "comparison": {
+    "old": "add-mixed-70-30-v2-final",
+    "new": "add-synergy-v3"
+  },
+  "live_api_health": {
+    "status": "ok",
+    "device": "cpu",
+    "torch_cuda": false,
+    "default_checkpoint_id": "add-synergy-v3",
+    "database": "C:\\Users\\ad\\Documents\\WILL\\data\\will.db"
+  },
+  "settings": {
+    "warmup_passes": 5,
+    "timed_runs": 50,
+    "device": "cpu"
+  },
+  "results": {
+    "old": {
+      "checkpoint_id": "add-mixed-70-30-v2-final",
+      "min_steps": 2,
+      "max_steps": 4,
+      "adaptive_depth": 3,
+      "parameters": 581766,
+      "test3": {
+        "suite_report_id": "mixed_difficulty-d3cb994b9e4a",
+        "composition_ok": true,
+        "strata": {
+          "easy": {
+            "count": 100,
+            "accuracy_pct": 100.0,
+            "mean_depth": 2.1073170152439022,
+            "latency_p50_ms": 130.1042,
+            "latency_p95_ms": 213.7032,
+            "runs": 50
+          },
+          "hard": {
+            "count": 100,
+            "accuracy_pct": 11.0,
+            "mean_depth": 2.1385633642384105,
+            "latency_p50_ms": 158.2921,
+            "latency_p95_ms": 239.0771,
+            "runs": 50
+          }
+        }
+      },
+      "test6": {
+        "questions": 30,
+        "cold": {
+          "mean_depth": 2.137755,
+          "accuracy_pct": 13.3333,
+          "latency_p50_ms": 82.3922,
+          "latency_p95_ms": 157.2187
+        },
+        "adapt": {
+          "pairs": 30,
+          "seconds": 0.0159,
+          "fast_state_bytes": 16640,
+          "updates": 1
+        },
+        "warm": {
+          "mean_depth": 2.139456,
+          "accuracy_pct": 13.3333,
+          "latency_p50_ms": 86.2465,
+          "latency_p95_ms": 141.2776
+        },
+        "depth_delta": 0.0017,
+        "p50_delta_ms": 3.8543
+      }
+    },
+    "new": {
+      "checkpoint_id": "add-synergy-v3",
+      "min_steps": 1,
+      "max_steps": 4,
+      "adaptive_depth": 4,
+      "parameters": 581766,
+      "test3": {
+        "suite_report_id": "mixed_difficulty-bd5004c775e9",
+        "composition_ok": true,
+        "strata": {
+          "easy": {
+            "count": 100,
+            "accuracy_pct": 73.0,
+            "mean_depth": 1.397193283099451,
+            "latency_p50_ms": 124.4764,
+            "latency_p95_ms": 184.022,
+            "runs": 50
+          },
+          "hard": {
+            "count": 100,
+            "accuracy_pct": 6.0,
+            "mean_depth": 1.5282156624300967,
+            "latency_p50_ms": 180.7273,
+            "latency_p95_ms": 229.1756,
+            "runs": 50
+          }
+        }
+      },
+      "test6": {
+        "questions": 30,
+        "cold": {
+          "mean_depth": 1.52292,
+          "accuracy_pct": 6.6667,
+          "latency_p50_ms": 66.1164,
+          "latency_p95_ms": 111.4152
+        },
+        "adapt": {
+          "pairs": 30,
+          "seconds": 0.0088,
+          "fast_state_bytes": 16640,
+          "updates": 1
+        },
+        "warm": {
+          "mean_depth": 1.52292,
+          "accuracy_pct": 6.6667,
+          "latency_p50_ms": 99.7466,
+          "latency_p95_ms": 184.9574
+        },
+        "depth_delta": 0.0,
+        "p50_delta_ms": 33.6302
+      }
+    }
+  }
+}

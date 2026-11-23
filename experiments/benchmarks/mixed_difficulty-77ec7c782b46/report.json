@@ -1,0 +1,218 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "mixed_difficulty-77ec7c782b46",
+  "suite": "mixed_difficulty",
+  "created_at": 1795416291.520923,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 1.13,
+    "process_rss_mb": 332.9,
+    "timestamp": 1795416291.5263412
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": 200,
+    "depths": [
+      4
+    ],
+    "modes": [
+      "adaptive_hard"
+    ],
+    "adaptive_max_steps": null,
+    "batch_size": 16,
+    "max_examples": 0,
+    "max_new_tokens": 12,
+    "repeats": 3,
+    "generation_repeats": 5,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "continual_domains": 3,
+    "continual_facts_per_domain": 20,
+    "consolidation_ridge": null,
+    "device": "cpu",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": "will-8m-synergy-v1",
+    "mixed_easy_ratio": 0.5,
+    "compile_probe": false,
+    "presets": null,
+    "precisions": null,
+    "scaling_seq_len": 32,
+    "scaling_batch_size": 1,
+    "scaling_steps": 2,
+    "scaling_warmup": 1,
+    "scaling_repeats": 2
+  },
+  "duration_seconds": 100.883,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "will-8m-synergy-v1",
+  "dataset": {
+    "task": "arith_add",
+    "split": "test",
+    "size": 200,
+    "seed": 1337,
+    "easy_ratio_requested": 0.5,
+    "easy_ratio_observed": 0.5,
+    "complexity_counts": {
+      "1": 100,
+      "2": 100
+    }
+  },
+  "task": "arith_add",
+  "results": [
+    {
+      "mode": "fixed_depth",
+      "max_steps": 4,
+      "accuracy": 0.545,
+      "correct": 109,
+      "count": 200,
+      "loss": 0.4369723044151117,
+      "perplexity": 1.5480132033315552,
+      "eval_mean_depth": 4.0,
+      "generation_mean_depth": 4.0,
+      "token_evaluations": 13620,
+      "generation_token_evaluations": 13620,
+      "estimated_macs": 35886816000,
+      "estimated_flops": 71773632000,
+      "generation_estimated_macs": 38621600000,
+      "loss_seconds": 2.926035500015132,
+      "generation_seconds": 3.7386729000136256,
+      "generation_seconds_all": [
+        3.738673,
+        3.635786,
+        3.740335,
+        3.98004,
+        3.509415
+      ],
+      "generation_repeats": 5,
+      "generation_examples": [],
+      "strata": {
+        "trivial": {
+          "complexity": 1,
+          "count": 100,
+          "accuracy": 0.96,
+          "correct": 96,
+          "loss": 0.05147654749453068,
+          "perplexity": 1.0528244946303753,
+          "generation_mean_depth": 4.0,
+          "generation_token_evaluations": 6160,
+          "generation_seconds": 1.617185499984771
+        },
+        "hard": {
+          "complexity": 2,
+          "count": 100,
+          "accuracy": 0.13,
+          "correct": 13,
+          "loss": 0.6904489752364485,
+          "perplexity": 1.9946108631214632,
+          "generation_mean_depth": 4.0,
+          "generation_token_evaluations": 7460,
+          "generation_seconds": 2.2480395999737084
+        }
+      },
+      "trivial_accuracy": 0.96,
+      "hard_accuracy": 0.13,
+      "hard_minus_trivial_accuracy": -0.83
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 4,
+      "accuracy": 0.465,
+      "correct": 93,
+      "count": 200,
+      "loss": 0.49289643784199866,
+      "perplexity": 1.637050976078242,
+      "eval_mean_depth": 1.6351795959472657,
+      "generation_mean_depth": 1.607489678779473,
+      "token_evaluations": 5576,
+      "generation_token_evaluations": 5573,
+      "estimated_macs": 15294176000,
+      "estimated_flops": 30588352000,
+      "generation_estimated_macs": 18021280000,
+      "loss_seconds": 3.000827799900435,
+      "generation_seconds": 3.8982654999708757,
+      "generation_seconds_all": [
+        4.560321,
+        3.898265,
+        3.950829,
+        3.826177,
+        3.100253
+      ],
+      "generation_repeats": 5,
+      "generation_examples": [],
+      "strata": {
+        "trivial": {
+          "complexity": 1,
+          "count": 100,
+          "accuracy": 0.8,
+          "correct": 80,
+          "loss": 0.19159560948610305,
+          "perplexity": 1.2111806279617803,
+          "generation_mean_depth": 1.2682926128048782,
+          "generation_token_evaluations": 1980,
+          "generation_seconds": 1.2808771000709385
+        },
+        "hard": {
+          "complexity": 2,
+          "count": 100,
+          "accuracy": 0.13,
+          "correct": 13,
+          "loss": 0.6910120467617087,
+          "perplexity": 1.9957342879570477,
+          "generation_mean_depth": 1.8905852340966922,
+          "generation_token_evaluations": 3593,
+          "generation_seconds": 1.4406411999370903
+        }
+      },
+      "trivial_accuracy": 0.8,
+      "hard_accuracy": 0.13,
+      "hard_minus_trivial_accuracy": -0.67
+    }
+  ],
+  "summary": {
+    "best_accuracy": 0.545,
+    "best_config": "fixed_depth@4",
+    "best_hard_accuracy": 0.13,
+    "best_hard_config": "fixed_depth@4",
+    "easy_ratio_requested": 0.5,
+    "easy_ratio_observed": 0.5,
+    "composition_ok": true,
+    "strata": {
+      "trivial": 100,
+      "hard": 100
+    },
+    "parameters": 8044903
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\mixed_difficulty-77ec7c782b46\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\mixed_difficulty-77ec7c782b46\\summary.csv"
+  }
+}

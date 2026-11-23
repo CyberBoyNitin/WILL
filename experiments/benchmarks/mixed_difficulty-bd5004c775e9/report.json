@@ -1,0 +1,218 @@
+{
+  "format": "will-benchmark-v1",
+  "run_id": "mixed_difficulty-bd5004c775e9",
+  "suite": "mixed_difficulty",
+  "created_at": 1795333404.8800654,
+  "device": "cpu",
+  "hardware": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.14.4",
+    "torch": "2.14.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "device_count": 0,
+    "gpu": {
+      "available": false,
+      "name": null,
+      "total_memory_mb": null,
+      "allocated_mb": null,
+      "reserved_mb": null
+    },
+    "cpu_count": 4,
+    "cpu_threads": 2,
+    "ram_total_gb": 7.9,
+    "ram_available_gb": 1.1,
+    "process_rss_mb": 258.9,
+    "timestamp": 1795333404.885452
+  },
+  "options": {
+    "task": null,
+    "split": "test",
+    "limit": 200,
+    "depths": [
+      4
+    ],
+    "modes": [
+      "adaptive_hard"
+    ],
+    "adaptive_max_steps": null,
+    "batch_size": 16,
+    "max_examples": 0,
+    "max_new_tokens": 12,
+    "repeats": 3,
+    "generation_repeats": 5,
+    "prompt_lengths": [
+      32,
+      64,
+      128
+    ],
+    "halt_epsilon": null,
+    "memory_records": 20,
+    "adapt_rounds": 20,
+    "continual_domains": 3,
+    "continual_facts_per_domain": 20,
+    "consolidation_ridge": null,
+    "device": "cpu",
+    "top_k": 5,
+    "seed": null,
+    "checkpoint_id": "add-synergy-v3",
+    "mixed_easy_ratio": 0.5,
+    "compile_probe": false,
+    "presets": null,
+    "precisions": null,
+    "scaling_seq_len": 32,
+    "scaling_batch_size": 1,
+    "scaling_steps": 2,
+    "scaling_warmup": 1,
+    "scaling_repeats": 2
+  },
+  "duration_seconds": 19.189,
+  "cancelled": false,
+  "notes": [
+    "All accuracy/loss/recall values are measured on generated or held-out data.",
+    "MAC/FLOP values are analytic estimates, not power measurements.",
+    "No energy savings are claimed."
+  ],
+  "checkpoint_id": "add-synergy-v3",
+  "dataset": {
+    "task": "arith_add",
+    "split": "test",
+    "size": 200,
+    "seed": 1337,
+    "easy_ratio_requested": 0.5,
+    "easy_ratio_observed": 0.5,
+    "complexity_counts": {
+      "1": 100,
+      "2": 100
+    }
+  },
+  "task": "arith_add",
+  "results": [
+    {
+      "mode": "fixed_depth",
+      "max_steps": 4,
+      "accuracy": 0.395,
+      "correct": 79,
+      "count": 200,
+      "loss": 0.9369381739088326,
+      "perplexity": 2.5521551878222057,
+      "eval_mean_depth": 4.0,
+      "generation_mean_depth": 4.0,
+      "token_evaluations": 13620,
+      "generation_token_evaluations": 13624,
+      "estimated_macs": 2279367424,
+      "estimated_flops": 4558734848,
+      "generation_estimated_macs": 2408174080,
+      "loss_seconds": 0.36433380004018545,
+      "generation_seconds": 0.7082081999396905,
+      "generation_seconds_all": [
+        0.708208,
+        0.718802,
+        0.710553,
+        0.675926,
+        0.694193
+      ],
+      "generation_repeats": 5,
+      "generation_examples": [],
+      "strata": {
+        "trivial": {
+          "complexity": 1,
+          "count": 100,
+          "accuracy": 0.73,
+          "correct": 73,
+          "loss": 0.5226041773955027,
+          "perplexity": 1.6864136565740937,
+          "generation_mean_depth": 4.0,
+          "generation_token_evaluations": 6156,
+          "generation_seconds": 0.26027199998497963
+        },
+        "hard": {
+          "complexity": 2,
+          "count": 100,
+          "accuracy": 0.06,
+          "correct": 6,
+          "loss": 1.20937693086389,
+          "perplexity": 3.351395850565201,
+          "generation_mean_depth": 4.0,
+          "generation_token_evaluations": 7468,
+          "generation_seconds": 0.34884320001583546
+        }
+      },
+      "trivial_accuracy": 0.73,
+      "hard_accuracy": 0.06,
+      "hard_minus_trivial_accuracy": -0.67
+    },
+    {
+      "mode": "adaptive_hard",
+      "max_steps": 4,
+      "accuracy": 0.395,
+      "correct": 79,
+      "count": 200,
+      "loss": 0.9369742117637445,
+      "perplexity": 2.5522471636778734,
+      "eval_mean_depth": 1.4529421520233154,
+      "generation_mean_depth": 1.4686634184692182,
+      "token_evaluations": 4950,
+      "generation_token_evaluations": 4969,
+      "estimated_macs": 858874624,
+      "estimated_flops": 1717749248,
+      "generation_estimated_macs": 990138880,
+      "loss_seconds": 0.29566070006694645,
+      "generation_seconds": 0.7476593999890611,
+      "generation_seconds_all": [
+        0.655758,
+        0.747659,
+        0.761181,
+        0.693415,
+        1.04358
+      ],
+      "generation_repeats": 5,
+      "generation_examples": [],
+      "strata": {
+        "trivial": {
+          "complexity": 1,
+          "count": 100,
+          "accuracy": 0.73,
+          "correct": 73,
+          "loss": 0.522638883193334,
+          "perplexity": 1.6864721859211667,
+          "generation_mean_depth": 1.397193283099451,
+          "generation_token_evaluations": 2096,
+          "generation_seconds": 0.40530930005479604
+        },
+        "hard": {
+          "complexity": 2,
+          "count": 100,
+          "accuracy": 0.06,
+          "correct": 6,
+          "loss": 1.2094139020736903,
+          "perplexity": 3.351519758014806,
+          "generation_mean_depth": 1.5282156624300967,
+          "generation_token_evaluations": 2873,
+          "generation_seconds": 0.42372409999370575
+        }
+      },
+      "trivial_accuracy": 0.73,
+      "hard_accuracy": 0.06,
+      "hard_minus_trivial_accuracy": -0.67
+    }
+  ],
+  "summary": {
+    "best_accuracy": 0.395,
+    "best_config": "fixed_depth@4",
+    "best_hard_accuracy": 0.06,
+    "best_hard_config": "fixed_depth@4",
+    "easy_ratio_requested": 0.5,
+    "easy_ratio_observed": 0.5,
+    "composition_ok": true,
+    "strata": {
+      "trivial": 100,
+      "hard": 100
+    },
+    "parameters": 581766
+  },
+  "artifacts": {
+    "json": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\mixed_difficulty-bd5004c775e9\\report.json",
+    "csv": "C:\\Users\\ad\\Documents\\WILL\\experiments\\benchmarks\\mixed_difficulty-bd5004c775e9\\summary.csv"
+  }
+}

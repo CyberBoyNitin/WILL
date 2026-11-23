@@ -3,7 +3,7 @@
 profile: tiny
 
 model:
-  min_steps: 2
+  min_steps: 1
   max_steps: 4
   halt_epsilon: 0.05
   memory_dim: 64

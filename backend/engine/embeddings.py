@@ -54,10 +54,11 @@ class InputEmbedding(nn.Module):
             if positions.shape != input_ids.shape:
                 raise ValueError("positions must have the same shape as input_ids")
             positions = positions.to(device=input_ids.device, dtype=torch.long)
-        if int(positions.max().item()) >= self.cfg.max_seq_len:
-            raise ValueError(
-                f"position {int(positions.max().item())} exceeds max_seq_len "
-                f"{self.cfg.max_seq_len}"
-            )
+        # Pure tensor assertion: no ``.item()`` / host sync in forward, so the
+        # embedding graph stays traceable by torch.compile.
+        torch._assert(
+            (positions < self.cfg.max_seq_len).all(),
+            "position exceeds max_seq_len",
+        )
         x = self.token_embedding(input_ids) + self.position_embedding(positions)
         return self.dropout(self.norm(x))

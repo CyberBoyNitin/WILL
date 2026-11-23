@@ -1,0 +1,127 @@
+{
+  "format": "will-lead-eval-v1",
+  "run_id": "will8m_eval-cbb15aeef50f",
+  "created_at": 1795416147.621596,
+  "comparison": {
+    "old": "add-mixed-70-30-v2-final",
+    "new": "will-8m-synergy-v1"
+  },
+  "live_api_health": {
+    "status": "ok",
+    "device": "cpu",
+    "torch_cuda": false,
+    "default_checkpoint_id": "will-8m-synergy-v1",
+    "database": "C:\\Users\\ad\\Documents\\WILL\\data\\will.db"
+  },
+  "settings": {
+    "warmup_passes": 5,
+    "timed_runs": 50,
+    "device": "cpu"
+  },
+  "results": {
+    "old": {
+      "checkpoint_id": "add-mixed-70-30-v2-final",
+      "min_steps": 2,
+      "max_steps": 4,
+      "adaptive_depth": 3,
+      "parameters": 610759,
+      "test3": {
+        "suite_report_id": "mixed_difficulty-ae483f1344b9",
+        "composition_ok": true,
+        "strata": {
+          "easy": {
+            "count": 100,
+            "accuracy_pct": 100.0,
+            "mean_depth": 2.1073170152439022,
+            "latency_p50_ms": 112.4748,
+            "latency_p95_ms": 140.3487,
+            "runs": 50
+          },
+          "hard": {
+            "count": 100,
+            "accuracy_pct": 11.0,
+            "mean_depth": 2.1385633642384105,
+            "latency_p50_ms": 158.6593,
+            "latency_p95_ms": 254.6731,
+            "runs": 50
+          }
+        }
+      },
+      "test6": {
+        "questions": 30,
+        "cold": {
+          "mean_depth": 2.137755,
+          "accuracy_pct": 13.3333,
+          "latency_p50_ms": 79.8552,
+          "latency_p95_ms": 120.2808
+        },
+        "adapt": {
+          "pairs": 30,
+          "seconds": 0.0047,
+          "fast_state_bytes": 16640,
+          "writer": "test5_ridge_consolidate"
+        },
+        "warm": {
+          "mean_depth": 2.127768,
+          "accuracy_pct": 13.3333,
+          "latency_p50_ms": 104.9898,
+          "latency_p95_ms": 143.5142
+        },
+        "depth_delta": -0.01,
+        "p50_delta_ms": 25.1346
+      }
+    },
+    "new": {
+      "checkpoint_id": "will-8m-synergy-v1",
+      "min_steps": 1,
+      "max_steps": 4,
+      "adaptive_depth": 4,
+      "parameters": 8044903,
+      "test3": {
+        "suite_report_id": "mixed_difficulty-77ec7c782b46",
+        "composition_ok": true,
+        "strata": {
+          "easy": {
+            "count": 100,
+            "accuracy_pct": 80.0,
+            "mean_depth": 1.2682926128048782,
+            "latency_p50_ms": 785.2956,
+            "latency_p95_ms": 1133.0046,
+            "runs": 50
+          },
+          "hard": {
+            "count": 100,
+            "accuracy_pct": 13.0,
+            "mean_depth": 1.8905852340966922,
+            "latency_p50_ms": 1103.5087,
+            "latency_p95_ms": 1485.2308,
+            "runs": 50
+          }
+        }
+      },
+      "test6": {
+        "questions": 30,
+        "cold": {
+          "mean_depth": 1.920204,
+          "accuracy_pct": 10.0,
+          "latency_p50_ms": 365.5173,
+          "latency_p95_ms": 460.0864
+        },
+        "adapt": {
+          "pairs": 30,
+          "seconds": 0.0032,
+          "fast_state_bytes": 66048,
+          "writer": "test5_ridge_consolidate"
+        },
+        "warm": {
+          "mean_depth": 1.430272,
+          "accuracy_pct": 16.6667,
+          "latency_p50_ms": 456.7952,
+          "latency_p95_ms": 566.4733
+        },
+        "depth_delta": -0.4899,
+        "p50_delta_ms": 91.2779
+      }
+    }
+  }
+}
