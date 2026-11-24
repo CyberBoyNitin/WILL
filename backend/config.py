@@ -55,6 +55,17 @@ class ModelConfig(BaseModel):
     memory_norm_max: float = 0.0
     memory_ridge: float = 1e-3
     memory_hidden_mult: int = 2
+    # Sequential answer-slot memory.  Each record can store one value per
+    # answer token position, which avoids decoding a whole answer from one
+    # pooled vector.
+    memory_slots: int = 4
+    # Add retrieved token-embedding similarities directly to the output logits.
+    memory_logit_skip: bool = False
+    memory_logit_scale: float = 20.0
+    # Mix a content-derived bag-of-tokens key into the pooled record key.  The
+    # contextual key can collapse to nearly the same vector for short prompts;
+    # token identity keeps distinct questions addressable before training.
+    memory_lexical_scale: float = 0.0
 
     tie_embeddings: bool = False
 

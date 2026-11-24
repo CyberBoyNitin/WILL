@@ -1,0 +1,135 @@
+{
+  "format": "will2m-eval-v1",
+  "run_id": "will2m_eval-0b08da74f4e2",
+  "created_at": 1795506652.4101746,
+  "comparison": {
+    "old": "will-8m-synergy-v1",
+    "new": "will-2m-synergy-v2"
+  },
+  "settings": {
+    "warmup_passes": 5,
+    "timed_runs": 50,
+    "device": "cpu",
+    "threads": 2,
+    "old_mode": "adaptive_hard",
+    "new_mode": "fixed_depth",
+    "old_test3_depth": "adaptive_hard",
+    "new_test3_router": {
+      "easy": 1,
+      "hard": 4
+    },
+    "new_hard_format": "direct_answer_4_loops",
+    "new_scratchpad": "auxiliary ones,carry1,tens,carry2,answer trace",
+    "memory_writer": "sequential_answer_slots",
+    "new_memory_cue": "recall",
+    "memory_ridge": 1e-06
+  },
+  "results": {
+    "old": {
+      "checkpoint_id": "will-8m-synergy-v1",
+      "parameters": 8044904,
+      "parameters_include_legacy_slot_modules": false,
+      "fast_state_bytes": 66048,
+      "min_steps": 1,
+      "max_steps": 4,
+      "memory_logit_skip": false,
+      "test3": {
+        "seed": 1337,
+        "strata": {
+          "easy": {
+            "count": 100,
+            "accuracy_pct": 80.0,
+            "mean_depth": 1.2682648,
+            "latency_p50_ms": 153.415,
+            "latency_p95_ms": 327.562,
+            "batch_size": 16
+          },
+          "hard": {
+            "count": 100,
+            "accuracy_pct": 13.0,
+            "mean_depth": 1.8906280399999997,
+            "latency_p50_ms": 241.471,
+            "latency_p95_ms": 437.428,
+            "batch_size": 16,
+            "decoder": "adaptive"
+          }
+        }
+      },
+      "test6": {
+        "questions": 30,
+        "seed": 1001336,
+        "writer": "pooled_ridge_consolidate",
+        "fast_state_bytes": 66048,
+        "cold": {
+          "accuracy_pct": 10.0,
+          "mean_depth": 1.9202040000000002,
+          "latency_p50_ms": 415.455,
+          "latency_p95_ms": 847.533,
+          "batch_size": 30
+        },
+        "warm": {
+          "accuracy_pct": 3.3333,
+          "mean_depth": 1.417094,
+          "latency_p50_ms": 413.839,
+          "latency_p95_ms": 869.432,
+          "batch_size": 30
+        },
+        "depth_delta": -0.5031,
+        "p50_delta_ms": -1.616
+      }
+    },
+    "new": {
+      "checkpoint_id": "will-2m-synergy-v2",
+      "parameters": 2014080,
+      "parameters_include_legacy_slot_modules": true,
+      "fast_state_bytes": 113568,
+      "min_steps": 1,
+      "max_steps": 4,
+      "memory_logit_skip": true,
+      "test3": {
+        "seed": 1337,
+        "strata": {
+          "easy": {
+            "count": 100,
+            "accuracy_pct": 100.0,
+            "mean_depth": 1.0,
+            "latency_p50_ms": 43.085,
+            "latency_p95_ms": 86.27,
+            "batch_size": 16
+          },
+          "hard": {
+            "count": 100,
+            "accuracy_pct": 24.0,
+            "mean_depth": 4.0,
+            "latency_p50_ms": 276.204,
+            "latency_p95_ms": 553.819,
+            "batch_size": 16,
+            "decoder": "direct_answer_4_loops"
+          }
+        }
+      },
+      "test6": {
+        "questions": 30,
+        "seed": 1001336,
+        "writer": "sequential_answer_slots",
+        "fast_state_bytes": 113568,
+        "cold": {
+          "accuracy_pct": 33.3333,
+          "mean_depth": 4.0,
+          "latency_p50_ms": 241.5,
+          "latency_p95_ms": 366.434,
+          "batch_size": 30
+        },
+        "warm": {
+          "accuracy_pct": 100.0,
+          "mean_depth": 1.0,
+          "latency_p50_ms": 254.807,
+          "latency_p95_ms": 413.358,
+          "batch_size": 30
+        },
+        "depth_delta": -3.0,
+        "p50_delta_ms": 13.307
+      }
+    }
+  }
+}

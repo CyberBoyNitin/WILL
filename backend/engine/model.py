@@ -77,12 +77,44 @@ class WILLModel(nn.Module):
         self.output_projection = OutputProjection(
             cfg, token_embedding=self.embedding.token_embedding
         )
+        # Sequential answer-slot addresses: slot j is added to the record key
+        # so one fast state can store the j-th answer token separately.
+        self.memory_slots = nn.Embedding(cfg.memory_slots, cfg.memory_dim)
+        # Fixed random token codes give short prompts a unique lexical address
+        # even before the contextual encoder is trained.  These are buffers,
+        # not learned parameters, so they cannot collapse onto one vector.
+        code = torch.randn(
+            cfg.vocab_size,
+            cfg.memory_dim,
+            generator=torch.Generator().manual_seed(20261124),
+        ) * 0.1
+        self.register_buffer("memory_lexical_code", code)
+        # Slot-specific sign flips keep the per-record component independent
+        # across answer positions.  Without them all slot keys live in
+        # span(record keys) + span(slot codes), which is too small to store
+        # every token of every record.
+        sign_gen = torch.Generator().manual_seed(20261125)
+        signs = torch.randint(
+            0, 2, (cfg.memory_slots, cfg.memory_dim), generator=sign_gen
+        ).to(torch.float32) * 2.0 - 1.0
+        self.register_buffer("memory_slot_sign", signs)
+        self.mem_to_vocab = nn.Linear(cfg.memory_dim, cfg.vocab_size, bias=False)
+        self.memory_logit_alpha = nn.Parameter(
+            torch.tensor(
+                float(cfg.memory_logit_scale) if cfg.memory_logit_skip else 0.0
+            )
+        )
         self.apply(_init_weights)
         with torch.no_grad():
             self.embedding.token_embedding.weight[0].zero_()
             self.recurrent_block.context_gate.bias.fill_(-1.0)
             self.halting_gate.net[-1].bias.fill_(-1.5)
             self.memory_gate.gate.bias.fill_(-2.0)
+            nn.init.normal_(self.memory_slots.weight, mean=0.0, std=0.1)
+        # When memory and hidden width agree, put the slot values in the same
+        # space as the language-model token embeddings.
+        if cfg.memory_dim == cfg.hidden_dim:
+            self.mem_to_vocab.weight = self.embedding.token_embedding.weight
         nn.init.normal_(self.memory_encoder.token_key.weight, mean=0.0, std=0.5)
         nn.init.normal_(self.memory_encoder.token_value.weight, mean=0.0, std=0.5)
         with torch.no_grad():
@@ -113,25 +145,77 @@ class WILLModel(nn.Module):
         self,
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
+        positions: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Contextual representation without recurrent refinement.
 
         Used by document ingestion to avoid paying for the recurrent loop when
         only a memory representation is needed.
         """
-        hidden = self.embedding(input_ids)
+        hidden = self.embedding(input_ids, positions=positions)
         return self.context_encoder(hidden, attention_mask)
 
     def encode_memory(
         self,
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
+        positions: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        context = self.encode_text(input_ids, attention_mask)
+        context = self.encode_text(input_ids, attention_mask, positions=positions)
         keys, values = self.memory_encoder(context, input_ids)
         return context, keys, values
 
     # ------------------------------------------------------------------
+    def pool_memory_key(
+        self,
+        keys: torch.Tensor,
+        attention_mask: torch.Tensor,
+        input_ids: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Pool per-token memory keys exactly like the runtime query path.
+
+        Writers must use this helper so the stored key and the query key are
+        identical; otherwise a nearest-neighbour fast state is searching a
+        slightly different vector than the one it wrote.
+        """
+        mask = attention_mask.to(keys.dtype).unsqueeze(-1)
+        lengths = attention_mask.sum(dim=1).clamp_min(1)
+        # Last *valid* index.  Generation left-pads, so ``length - 1`` points
+        # into the pad region there; flipping the mask handles both layouts.
+        last_idx = (
+            attention_mask.shape[1]
+            - 1
+            - attention_mask.flip(1).to(torch.int64).argmax(dim=1)
+        )
+        row = torch.arange(keys.shape[0], device=keys.device)
+        pos = torch.arange(1, keys.shape[1] + 1, device=keys.device)
+        pos = pos.view(1, -1, 1).to(keys.dtype)
+        denom = (pos * mask).sum(dim=1).clamp_min(1.0)
+        key_mean = (keys * pos * mask).sum(dim=1) / denom
+        key_last = keys[row, last_idx]
+        pooled = F.normalize(key_mean + key_last, dim=-1)
+        if (
+            input_ids is not None
+            and float(self.cfg.memory_lexical_scale) != 0.0
+        ):
+            code = self.memory_lexical_code.to(input_ids.device)
+            token_emb = code[input_ids]
+            lexical = (token_emb * mask).sum(dim=1) / lengths.unsqueeze(1)
+            lexical = F.normalize(lexical, dim=-1)
+            pooled = F.normalize(
+                pooled + float(self.cfg.memory_lexical_scale) * lexical,
+                dim=-1,
+            )
+        return pooled
+
+    def make_slot_keys(self, record_keys: torch.Tensor, slot: int) -> torch.Tensor:
+        """Map a record key to slot ``slot`` in the fast-weight key space."""
+        return F.normalize(
+            record_keys * self.memory_slot_sign[slot]
+            + self.memory_slots.weight[slot],
+            dim=-1,
+        )
+
     def _apply_memory(
         self,
         context: torch.Tensor,
@@ -139,7 +223,9 @@ class WILLModel(nn.Module):
         attention_mask: torch.Tensor,
         memory_state: FastMemoryState | None,
         memory_enabled: bool | None,
-    ) -> tuple[torch.Tensor, dict[str, Any], torch.Tensor | None]:
+    ) -> tuple[
+        torch.Tensor, dict[str, Any], torch.Tensor | None, torch.Tensor | None
+    ]:
         use_memory = memory_state is not None and (
             True if memory_enabled is None else memory_enabled
         )
@@ -151,20 +237,21 @@ class WILLModel(nn.Module):
             # per-token query here made the learned key space unreachable.
             mask = attention_mask.to(context.dtype).unsqueeze(-1)
             lengths = attention_mask.sum(dim=1).clamp_min(1)
-            last_idx = (lengths - 1).long()
+            last_idx = (
+                attention_mask.shape[1]
+                - 1
+                - attention_mask.flip(1).to(torch.int64).argmax(dim=1)
+            )
             row = torch.arange(context.shape[0], device=context.device)
             mean = (context * mask).sum(dim=1) / lengths.to(context.dtype).unsqueeze(1)
             pooled_hidden = F.normalize(mean + context[row, last_idx], dim=-1)
-            # Writer-aligned key: the Test 5/6 writer pools the per-token keys
-            # from `memory_encoder`; reproduce that exact pooling here.
+            # Writer-aligned key: the Test 5/6 writer calls
+            # ``pool_memory_key`` on its per-token keys, so this is the same
+            # vector the writer stored.
             keys, _ = self.memory_encoder(context, input_ids)
-            key_mask = attention_mask.unsqueeze(-1)
-            pos = torch.arange(1, context.shape[1] + 1, device=context.device)
-            pos = pos.view(1, -1, 1).to(keys.dtype)
-            denom = (pos * key_mask).sum(dim=1).clamp_min(1.0)
-            key_mean = (keys * pos * key_mask).sum(dim=1) / denom
-            key_last = keys[row, last_idx]
-            key_query = F.normalize(key_mean + key_last, dim=-1)
+            key_query = self.pool_memory_key(
+                keys, attention_mask, input_ids=input_ids
+            )
             refine, gain = self.memory_bridge(pooled_hidden)
             query = F.normalize(key_query + self.query_scale * refine, dim=-1)
             retrieved = self.memory.read(memory_state, query)
@@ -175,6 +262,41 @@ class WILLModel(nn.Module):
                 mem_out, (mem_out.shape[-1],)
             ) * self.memory_scale
             context = context + mem_out.unsqueeze(1)
+            memory_slot_logits = None
+            if self.cfg.memory_logit_skip:
+                # Slot j retrieves the j-th answer token embedding.  The tied
+                # token-embedding matrix turns that vector into a direct token
+                # score, so multi-digit answers never need to be decoded from
+                # one pooled sentence vector.
+                weight = F.normalize(self.mem_to_vocab.weight, dim=-1)
+                slot_scores = []
+                for slot in range(self.cfg.memory_slots):
+                    slot_query = self.make_slot_keys(key_query, slot)
+                    slot_value = self.memory.read(memory_state, slot_query)
+                    slot_scores.append(
+                        F.linear(F.normalize(slot_value, dim=-1), weight)
+                    )
+                slot_scores = torch.stack(slot_scores, dim=1)  # [B, slots, vocab]
+                slot_confidence = slot_scores.max(dim=-1).values
+                # Only a high-confidence nearest-token match may write into
+                # the output distribution.  With exact slot storage this is
+                # 1.0 for every stored answer token; an unrelated/absent slot
+                # leaves the language model logits untouched.
+                slot_gate = (slot_confidence > 0.85).to(slot_scores.dtype)
+                memory_slot_logits = (
+                    self.memory_logit_alpha
+                    * slot_gate.unsqueeze(-1)
+                    * slot_scores
+                )
+                slot_confidence_mean = float(
+                    slot_confidence.detach().mean().item()
+                )
+                slot_confidence_min = float(
+                    slot_confidence.detach().min().item()
+                )
+            else:
+                slot_confidence_mean = None
+                slot_confidence_min = None
             memory_stats = {
                 "enabled": True,
                 "kind": memory_state.kind,
@@ -185,9 +307,12 @@ class WILLModel(nn.Module):
                     retrieved.detach().norm(dim=-1).mean().item()
                 ),
                 "state_bytes": memory_state.state_bytes(),
+                "slot_confidence_mean": slot_confidence_mean,
+                "slot_confidence_min": slot_confidence_min,
             }
         elif memory_state is not None:
             query = None
+            memory_slot_logits = None
             memory_stats = {
                 "enabled": False,
                 "kind": memory_state.kind,
@@ -195,8 +320,9 @@ class WILLModel(nn.Module):
             }
         else:
             query = None
+            memory_slot_logits = None
             memory_stats = {"enabled": False, "reason": "no memory state"}
-        return context, memory_stats, query
+        return context, memory_stats, query, memory_slot_logits
 
     def _forward_context(
         self,
@@ -210,7 +336,7 @@ class WILLModel(nn.Module):
         halt_epsilon: float | None,
         mac_seq_len: int | None = None,
     ) -> tuple[torch.Tensor, dict[str, Any]]:
-        context, memory_stats, memory_query = self._apply_memory(
+        context, memory_stats, memory_query, memory_slot_logits = self._apply_memory(
             context, input_ids, controller_mask, memory_state, memory_enabled
         )
         output, stats = self.controller(
@@ -245,6 +371,10 @@ class WILLModel(nn.Module):
             # Exposed for the Phase C query-alignment objective; it is a small
             # [batch, memory_dim] tensor and is detached by the API serializer.
             stats["memory_query"] = memory_query
+        if memory_slot_logits is not None:
+            # [batch, slots, vocab] token-level memory readout.  Generation adds
+            # slot j at decoding step j; training can supervise it directly.
+            stats["memory_slot_logits"] = memory_slot_logits
         return logits, stats
 
     def forward(
@@ -413,7 +543,9 @@ class WILLModel(nn.Module):
         finish_reason = "length"
         streamed_text = ""
         logits = prompt_logits
-        for _ in range(max_new_tokens):
+        prompt_slot_logits = prompt_stats.get("memory_slot_logits")
+        decode_memory_state = None if prompt_slot_logits is not None else memory_state
+        for step in range(max_new_tokens):
             if cancel_event is not None and cancel_event.is_set():
                 finish_reason = "cancelled"
                 break
@@ -421,6 +553,11 @@ class WILLModel(nn.Module):
                 finish_reason = "length"
                 break
             next_logits = logits[:, -1, :].float()
+            if (
+                prompt_slot_logits is not None
+                and step < prompt_slot_logits.shape[1]
+            ):
+                next_logits = next_logits + prompt_slot_logits[:, step, :].float()
             if temperature is None or temperature <= 0:
                 next_id = int(torch.argmax(next_logits, dim=-1).item())
             else:
@@ -482,7 +619,7 @@ class WILLModel(nn.Module):
                 token,
                 attention_mask,
                 cache,
-                memory_state=memory_state,
+                memory_state=decode_memory_state,
                 mode=mode,
                 max_steps=max_steps,
                 halt_epsilon=halt_epsilon,
@@ -664,11 +801,22 @@ class WILLModel(nn.Module):
         row_indices = list(range(b))
         logits = prompt_logits
         current_mask = attention_mask
-        for _ in range(max(0, int(max_new_tokens))):
+        prompt_slot_logits = prompt_stats.get("memory_slot_logits")
+        decode_memory_state = None if prompt_slot_logits is not None else memory_state
+        for step in range(max(0, int(max_new_tokens))):
             if not row_indices:
                 break
+            next_logits = logits[:, -1, :]
+            if (
+                prompt_slot_logits is not None
+                and step < prompt_slot_logits.shape[1]
+            ):
+                rows = torch.tensor(row_indices, dtype=torch.long, device=device)
+                next_logits = next_logits + prompt_slot_logits.index_select(
+                    0, rows
+                )[:, step, :].to(next_logits.dtype)
             next_ids = self._select_next_ids(
-                logits[:, -1, :], temperature, top_k
+                next_logits, temperature, top_k
             )
             decode_rows: list[int] = []
             for local, original in enumerate(row_indices):
@@ -730,7 +878,7 @@ class WILLModel(nn.Module):
                 next_ids.unsqueeze(1),
                 current_mask,
                 cache,
-                memory_state=memory_state,
+                memory_state=decode_memory_state,
                 mode=mode,
                 max_steps=max_steps,
                 halt_epsilon=halt_epsilon,

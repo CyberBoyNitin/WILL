@@ -1,0 +1,58 @@
+# WILL-2M: compact CPU model for digit-level carry arithmetic + slot memory.
+# Measured with the v2 architecture: 2,014,080 parameters; fast state 113,568 B.
+profile: custom
+
+model:
+  hidden_dim: 168
+  n_heads: 8
+  context_layers: 2
+  context_ff_mult: 4
+  ff_mult: 4
+  max_seq_len: 192
+  dropout: 0.0
+  min_steps: 1
+  max_steps: 4
+  adaptive_inference_steps: 4
+  halt_epsilon: 0.05
+  memory_dim: 168
+  memory_kind: ttt_linear
+  memory_inner_steps: 2
+  memory_ridge: 1e-3
+  memory_slots: 4
+  memory_logit_skip: true
+  memory_logit_scale: 20.0
+  memory_lexical_scale: 1.0
+  tie_embeddings: false
+
+training:
+  task: arith_add
+  train_size: 1600
+  val_size: 200
+  test_size: 200
+  epochs: 12
+  batch_size: 48
+  lr: 4e-4
+  weight_decay: 0.01
+  grad_clip: 1.0
+  grad_accum: 1
+  optimizer: adamw
+  scheduler: cosine
+  warmup_steps: 20
+  ponder_lambda: 0.0
+  ponder_warmup_epochs: 0
+  accuracy_gated_ponder: false
+  memory_lambda: 0.0
+  mode: fixed_depth
+  seed: 1337
+  eval_every: 1
+  early_stop_patience: 0
+  max_steps: 4
+  min_complexity: 1
+  max_complexity: 2
+  mixed_easy_ratio: 0.4
+  precision: fp32
+  torch_compile: false
+  checkpoint_name: will-2m-synergy-v2
+
+server:
+  device: cpu
