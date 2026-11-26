@@ -1,14 +1,19 @@
-"""Test 3 + Test 6 comparison: will-8m-synergy-v1 vs will-2m-synergy-v2.
+"""Test 3 + Test 6 comparison for WILL checkpoints.
 
-The 2M model is evaluated with a deterministic complexity router:
+By default this evaluates will-8m-synergy-v1 against will-2m-synergy-v3.
+Pass ``--new will-2m-synergy-v2`` to reproduce the published v2 report.
+
+The 2M model uses a deterministic complexity router:
   - one-digit prompts: 1 recurrent step, answer-only target
-  - two-digit prompts: 4 recurrent steps, compact carry scratchpad target
+  - v2 two-digit prompts: 4 recurrent steps, direct answer
+  - v3 two-digit prompts: right-to-left carry-scratchpad chain
 
 Test 6 warm uses the sequential answer-slot writer and the high-confidence
 memory-to-logit skip.  Test 6 cold uses the normal language-model path.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import random
@@ -45,8 +50,13 @@ CFG = load_config("configs/will_2m.yaml")
 TOK = ByteTokenizer()
 DEVICE = torch.device("cpu")
 MODEL_MAX_LEN = int(CFG.model.max_seq_len)
-OLD = "will-8m-synergy-v1"
-NEW = "will-2m-synergy-v2"
+_parser = argparse.ArgumentParser()
+_parser.add_argument("--old", default="will-8m-synergy-v1")
+_parser.add_argument("--new", default="will-2m-synergy-v3")
+_args = _parser.parse_args()
+OLD = _args.old
+NEW = _args.new
+USE_CHAIN = NEW == "will-2m-synergy-v3"
 WARMUP = 5
 TIMED = 50
 OUT = Path(__file__).resolve().parent / f"will2m_eval-{uuid.uuid4().hex[:12]}"
@@ -150,7 +160,7 @@ def timed_staged(
     model,
     questions: list[str],
     *,
-    depth: int = 2,
+    depth: int = 3,
     batch_size: int = 16,
 ) -> dict:
     """Time chained carry-scratchpad decoding on held-out questions."""
@@ -248,9 +258,17 @@ REPORT = {
         "old_mode": "adaptive_hard",
         "new_mode": "fixed_depth",
         "old_test3_depth": "adaptive_hard",
-        "new_test3_router": {"easy": 1, "hard": 4},
-        "new_hard_format": "direct_answer_4_loops",
-        "new_scratchpad": "auxiliary ones,carry1,tens,carry2,answer trace",
+        "new_test3_router": (
+            {"easy": 1, "hard": 3} if USE_CHAIN else {"easy": 1, "hard": 4}
+        ),
+        "new_hard_format": (
+            "right_to_left_carry_chain" if USE_CHAIN else "direct_answer_4_loops"
+        ),
+        "new_scratchpad": (
+            "raw ones sum -> raw tens sum (with carry) -> answer"
+            if USE_CHAIN
+            else "auxiliary ones,carry1,tens,carry2,answer trace"
+        ),
         "memory_writer": "sequential_answer_slots",
         "new_memory_cue": "recall",
         "memory_ridge": 1e-6,
@@ -293,7 +311,11 @@ def evaluate_checkpoint(tag: str, checkpoint_id: str):
 
     if tag == "new":
         easy = timed(model, easy_prompts, 1, max_new_tokens=6)
-        hard = timed(model, hard_prompts, 4, max_new_tokens=6)
+        hard = (
+            timed_staged(model, [x["prompt"] for x in hard_rows], depth=3)
+            if USE_CHAIN
+            else timed(model, hard_prompts, 4, max_new_tokens=6)
+        )
     else:
         depth = mcfg.resolved_adaptive_steps()
         easy = timed(
@@ -316,13 +338,23 @@ def evaluate_checkpoint(tag: str, checkpoint_id: str):
             "hard": {
                 "count": len(hard_rows),
                 "accuracy_pct": round(
-                    100 * accuracy(hard["generated_ids"], hard_rows), 4
+                    100
+                    * (
+                        accuracy_from_answers(hard["answers"], hard_rows)
+                        if tag == "new" and USE_CHAIN
+                        else accuracy(hard["generated_ids"], hard_rows)
+                    ),
+                    4,
                 ),
                 "mean_depth": hard["mean_depth"],
                 "latency_p50_ms": hard["latency_p50_ms"],
                 "latency_p95_ms": hard["latency_p95_ms"],
                 "batch_size": hard["batch_size"],
-                "decoder": "direct_answer_4_loops" if tag == "new" else "adaptive",
+                "decoder": (
+                    ("right_to_left_carry_chain" if USE_CHAIN else "direct_answer_4_loops")
+                    if tag == "new"
+                    else "adaptive"
+                ),
             },
         },
     }
@@ -341,8 +373,12 @@ def evaluate_checkpoint(tag: str, checkpoint_id: str):
     prompts = [list(x["prompt_ids"]) for x in qa]
 
     if tag == "new":
-        cold = timed(
-            model, prompts, 4, max_new_tokens=6, batch_size=len(prompts)
+        cold = (
+            timed_staged(model, [x["prompt"] for x in qa], depth=3)
+            if USE_CHAIN
+            else timed(
+                model, prompts, 4, max_new_tokens=6, batch_size=len(prompts)
+            )
         )
         warm_prompts = [
             [BOS_ID] + TOK.encode(x["prompt"] + " recall") + [SEP_ID]
@@ -397,7 +433,13 @@ def evaluate_checkpoint(tag: str, checkpoint_id: str):
         "fast_state_bytes": model.memory.state_bytes(state),
         "cold": {
             "accuracy_pct": round(
-                100 * accuracy(cold["generated_ids"], qa), 4
+                100
+                * (
+                    accuracy_from_answers(cold["answers"], qa)
+                    if tag == "new" and USE_CHAIN
+                    else accuracy(cold["generated_ids"], qa)
+                ),
+                4,
             ),
             "mean_depth": cold["mean_depth"],
             "latency_p50_ms": cold["latency_p50_ms"],

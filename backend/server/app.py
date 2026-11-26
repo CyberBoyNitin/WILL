@@ -39,7 +39,7 @@ def create_app(
 
     app = FastAPI(
         title="WILL Research API",
-        version="0.2.0",
+        version="0.3.0",
         description=(
             "Local research API for the WILL adaptive-recurrent model. "
             "All metrics come from real model execution."
@@ -106,7 +106,7 @@ def create_app(
     def root() -> dict:
         return {
             "name": "WILL",
-            "version": "0.2.0",
+            "version": "0.3.0",
             "docs": "/docs",
             "health": "/api/health",
             "openai_compatible": "/v1/chat/completions",
