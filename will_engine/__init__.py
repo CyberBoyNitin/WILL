@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from backend.config import AppConfig as WILLServerConfig
 from backend.config import ModelConfig as WILLConfig
+from backend.engine.device import autocast_for, resolve_device
 from backend.engine.model import WILLModel
+from backend.engine.tokenizer import BPETokenizer, ByteTokenizer, build_tokenizer
 from will_engine.chat import CHAT_TEMPLATES, format_chat_prompt
 from will_engine.model import WILLForCausalLM, estimate_flops
 from will_engine.telemetry import GLOBAL_TELEMETRY, Telemetry
@@ -17,6 +19,8 @@ from will_engine.types import GenerationResult
 __version__ = "0.3.0"
 
 __all__ = [
+    "BPETokenizer",
+    "ByteTokenizer",
     "CHAT_TEMPLATES",
     "GLOBAL_TELEMETRY",
     "GenerationResult",
@@ -25,6 +29,9 @@ __all__ = [
     "WILLForCausalLM",
     "WILLModel",
     "WILLServerConfig",
+    "autocast_for",
+    "build_tokenizer",
     "estimate_flops",
     "format_chat_prompt",
+    "resolve_device",
 ]

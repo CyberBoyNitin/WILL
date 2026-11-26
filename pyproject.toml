@@ -19,6 +19,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+nlp = ["tiktoken>=0.7"]
 server = [
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",

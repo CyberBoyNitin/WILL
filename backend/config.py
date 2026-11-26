@@ -27,10 +27,27 @@ class ModelConfig(BaseModel):
     vocab_size: int = 260
     hidden_dim: int = 128
     n_heads: int = 4
+    # 0 means standard multi-head attention; a positive value enables GQA.
+    n_kv_heads: int = 0
     context_layers: int = 1
-    context_ff_mult: int = 2
+    context_ff_mult: float = 2.0
     max_seq_len: int = 256
     dropout: float = 0.1
+    # v4 natural-language settings.  Legacy configs keep the byte tokenizer and
+    # learned absolute positions so old checkpoints decode identically.
+    tokenizer_type: Literal["bpe", "char"] = "char"
+    bpe_name: str = "cl100k_base"
+    use_rope: bool = False
+    rope_theta: float = 10000.0
+    # Fast-weight document memory (aliases are resolved to memory_slots/memory_dim).
+    num_slots: int | None = None
+    slot_dim: int | None = None
+    # Token-identity embeddings inside the memory encoder can be narrower than
+    # the fast-weight slot width; v4 uses 128 to keep a 50k BPE vocabulary cheap.
+    memory_token_dim: int | None = None
+    memory_halt_trigger: bool = False
+    memory_confidence_threshold: float = 0.85
+    memory_decay_rate: float = 0.98
 
     # Adaptive computation
     min_steps: int = 1
@@ -87,6 +104,26 @@ class ModelConfig(BaseModel):
     def _validate(self) -> "ModelConfig":
         if self.hidden_dim % self.n_heads != 0:
             raise ValueError("hidden_dim must be divisible by n_heads")
+        if self.n_kv_heads < 0 or self.n_kv_heads > self.n_heads:
+            raise ValueError("n_kv_heads must be 0..n_heads")
+        if self.n_kv_heads and self.n_heads % self.n_kv_heads != 0:
+            raise ValueError("n_heads must be divisible by n_kv_heads")
+        if self.num_slots is not None:
+            if self.num_slots < 1:
+                raise ValueError("num_slots must be >= 1")
+            self.memory_slots = self.num_slots
+        else:
+            self.num_slots = self.memory_slots
+        if self.slot_dim is not None:
+            if self.slot_dim < 8:
+                raise ValueError("slot_dim must be >= 8")
+            self.memory_dim = self.slot_dim
+        else:
+            self.slot_dim = self.memory_dim
+        if self.memory_token_dim is None:
+            self.memory_token_dim = self.memory_dim
+        if self.memory_token_dim < 8:
+            raise ValueError("memory_token_dim must be >= 8")
         if self.min_steps < 1:
             raise ValueError("min_steps must be >= 1")
         if self.max_steps < self.min_steps:

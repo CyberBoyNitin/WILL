@@ -1,0 +1,90 @@
+{
+  "format": "will-v4-eval-v1",
+  "run_id": "v4_eval-b04a0387f282",
+  "created_at": 1795673970.3722005,
+  "checkpoint_id": "will-125m-v4-smoke",
+  "api_mode": "sdk_fallback",
+  "settings": {
+    "warmup": 2,
+    "timed_runs": 3,
+    "threads": 2
+  },
+  "results": {
+    "adaptive_split": {
+      "easy": {
+        "prompt": "The little fox walked into the quiet forest and",
+        "mean_depth": 1.0,
+        "p50_ms": 189.132,
+        "p95_ms": 190.161,
+        "target_depth_range": [
+          1.0,
+          1.2
+        ]
+      },
+      "reasoning": {
+        "mean_depth": 4.0,
+        "p50_ms": 282.036,
+        "p95_ms": 338.952,
+        "target_depth_range": [
+          3.0,
+          4.0
+        ],
+        "samples": [
+          {
+            "prompt": "calc 47 + 38 = ones 15 tens 8",
+            "text": "",
+            "mean_depth": 4.0
+          },
+          {
+            "prompt": "calc 91 + 18 = ones 9 tens 10",
+            "text": "",
+            "mean_depth": 4.0
+          },
+          {
+            "prompt": "calc 76 + 59 = ones 15 tens 14",
+            "text": "",
+            "mean_depth": 4.0
+          }
+        ]
+      }
+    },
+    "document_absorption": {
+      "documents": 10,
+      "fast_state_bytes": 73216,
+      "early_first_two": {
+        "accuracy": 0.0,
+        "mean_depth": 4.0,
+        "p50_ms": 281.779
+      },
+      "after_ten_first_two": {
+        "accuracy": 0.0,
+        "mean_depth": 4.0,
+        "p50_ms": 274.633
+      },
+      "after_ten_all": {
+        "accuracy": 0.0,
+        "mean_depth": 4.0,
+        "p50_ms": 282.15
+      },
+      "forgetting_drop_pct": 0.0,
+      "cold": {
+        "text": "",
+        "mean_depth": 4.0,
+        "p50_ms": 276.531,
+        "p95_ms": 292.767
+      },
+      "warm": {
+        "text": "dAdddddddddddddddddddddd",
+        "mean_depth": 1.0,
+        "p50_ms": 213.74,
+        "p95_ms": 220.078
+      },
+      "depth_collapse": -3.0,
+      "wall_clock_speedup": 1.294,
+      "unstructured": {
+        "state_bytes": 66048,
+        "slots": 8
+      }
+    }
+  }
+}

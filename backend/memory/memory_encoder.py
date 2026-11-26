@@ -37,8 +37,13 @@ class MemoryEncoder(nn.Module):
         super().__init__()
         self.key = nn.Linear(cfg.hidden_dim, cfg.memory_dim)
         self.value = nn.Linear(cfg.hidden_dim, cfg.memory_dim)
-        self.token_key = nn.Embedding(cfg.vocab_size, cfg.memory_dim)
-        self.token_value = nn.Embedding(cfg.vocab_size, cfg.memory_dim)
+        token_dim = int(cfg.memory_token_dim or cfg.memory_dim)
+        self.token_dim = token_dim
+        self.token_key = nn.Embedding(cfg.vocab_size, token_dim)
+        self.token_value = nn.Embedding(cfg.vocab_size, token_dim)
+        if token_dim != cfg.memory_dim:
+            self.token_key_proj = nn.Linear(token_dim, cfg.memory_dim, bias=False)
+            self.token_value_proj = nn.Linear(token_dim, cfg.memory_dim, bias=False)
         self.norm = nn.LayerNorm(cfg.memory_dim)
         self.seq_key = nn.GRU(cfg.memory_dim, cfg.memory_dim, batch_first=True)
         self.seq_value = nn.GRU(cfg.memory_dim, cfg.memory_dim, batch_first=True)
@@ -65,8 +70,12 @@ class MemoryEncoder(nn.Module):
         if input_ids is not None:
             # Token identity keeps short record keys distinguishable even
             # before the context encoder has been trained on a memory task.
-            k = k + self.token_key(input_ids)
-            v = v + self.token_value(input_ids)
+            if self.token_dim == k.shape[-1]:
+                k = k + self.token_key(input_ids)
+                v = v + self.token_value(input_ids)
+            else:
+                k = k + self.token_key_proj(self.token_key(input_ids))
+                v = v + self.token_value_proj(self.token_value(input_ids))
         k = self.norm(k)
         v = self.norm(v)
         k, _ = self.seq_key(k)

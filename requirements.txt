@@ -8,6 +8,9 @@ pymupdf>=1.24
 psutil>=6.0
 python-multipart>=0.0.9
 
+# Optional v4 subword tokenizer (clean byte-level fallback if unavailable)
+# tiktoken>=0.7
+
 # Tests and API smoke checks
 httpx>=0.27
 pytest>=8.0

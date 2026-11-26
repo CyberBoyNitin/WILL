@@ -83,12 +83,20 @@ class WILLModel(nn.Module):
         # Fixed random token codes give short prompts a unique lexical address
         # even before the contextual encoder is trained.  These are buffers,
         # not learned parameters, so they cannot collapse onto one vector.
+        lex_dim = int(cfg.memory_token_dim or cfg.memory_dim)
         code = torch.randn(
             cfg.vocab_size,
-            cfg.memory_dim,
+            lex_dim,
             generator=torch.Generator().manual_seed(20261124),
         ) * 0.1
         self.register_buffer("memory_lexical_code", code)
+        if lex_dim != cfg.memory_dim:
+            proj = torch.randn(
+                lex_dim,
+                cfg.memory_dim,
+                generator=torch.Generator().manual_seed(20261126),
+            ) * 0.1
+            self.register_buffer("memory_lexical_proj", proj)
         # Slot-specific sign flips keep the per-record component independent
         # across answer positions.  Without them all slot keys live in
         # span(record keys) + span(slot codes), which is too small to store
@@ -104,6 +112,8 @@ class WILLModel(nn.Module):
                 float(cfg.memory_logit_scale) if cfg.memory_logit_skip else 0.0
             )
         )
+        # Learnable retention factor used by unstructured document absorption.
+        self.memory_decay = nn.Parameter(torch.tensor(float(cfg.memory_decay_rate)))
         self.apply(_init_weights)
         with torch.no_grad():
             self.embedding.token_embedding.weight[0].zero_()
@@ -201,6 +211,8 @@ class WILLModel(nn.Module):
             code = self.memory_lexical_code.to(input_ids.device)
             token_emb = code[input_ids]
             lexical = (token_emb * mask).sum(dim=1) / lengths.unsqueeze(1)
+            if hasattr(self, "memory_lexical_proj"):
+                lexical = lexical @ self.memory_lexical_proj
             lexical = F.normalize(lexical, dim=-1)
             pooled = F.normalize(
                 pooled + float(self.cfg.memory_lexical_scale) * lexical,
@@ -339,14 +351,28 @@ class WILLModel(nn.Module):
         context, memory_stats, memory_query, memory_slot_logits = self._apply_memory(
             context, input_ids, controller_mask, memory_state, memory_enabled
         )
+        effective_steps = max_steps
+        memory_halt = False
+        if (
+            self.cfg.memory_halt_trigger
+            and mode in ("adaptive_hard", "adaptive_soft")
+            and memory_stats.get("slot_confidence_min") is not None
+            and float(memory_stats["slot_confidence_min"])
+            >= float(self.cfg.memory_confidence_threshold)
+        ):
+            # High-confidence slot retrieval is a direct answer: spend one
+            # recurrent step instead of running the full reasoning chain.
+            effective_steps = 1
+            memory_halt = True
         output, stats = self.controller(
             context,
             context,
             attention_mask=controller_mask,
             mode=mode,
-            max_steps=max_steps,
+            max_steps=effective_steps,
             halt_epsilon=halt_epsilon,
         )
+        stats["memory_halt_triggered"] = memory_halt
         logits = self.output_projection(output)
         b, t = input_ids.shape
         token_evaluations = int(stats.get("total_token_evaluations", b * t))

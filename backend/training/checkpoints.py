@@ -11,7 +11,7 @@ import torch
 
 from backend.config import ModelConfig, TrainingConfig
 from backend.engine.model import WILLModel
-from backend.engine.tokenizer import ByteTokenizer
+from backend.engine.tokenizer import ByteTokenizer, build_tokenizer
 
 SAFE_ID = re.compile(r"^[A-Za-z0-9_.-]{1,96}$")
 
@@ -67,6 +67,11 @@ def save_checkpoint(
         "format": "will-checkpoint-v1",
         "checkpoint_id": cid,
         "created_at": time.time(),
+        "tokenizer_config": {
+            "type": model_cfg.tokenizer_type,
+            "name": model_cfg.bpe_name,
+            "vocab_size": model_cfg.vocab_size,
+        },
         "model_config": model_cfg.model_dump(),
         "training_config": training_cfg.model_dump(),
         "model_state": model.state_dict(),
@@ -83,6 +88,7 @@ def save_checkpoint(
     meta = {
         "checkpoint_id": cid,
         "created_at": payload["created_at"],
+        "tokenizer_config": payload["tokenizer_config"],
         "model_config": payload["model_config"],
         "training_config": payload["training_config"],
         "metrics": metrics,
@@ -147,4 +153,27 @@ def list_checkpoints(checkpoint_dir: str | Path) -> list[dict[str, Any]]:
 def load_tokenizer_for_checkpoint(
     payload: dict[str, Any], tokenizer_dir: str | Path | None = None
 ) -> ByteTokenizer:
-    return ByteTokenizer()
+    """Build the tokenizer recorded with a checkpoint.
+
+    Checkpoints saved before v4 have no ``tokenizer_config``; their
+    ``model_config`` still has ``tokenizer_type='char'``, which resolves to the
+    byte tokenizer and preserves every legacy test.
+    """
+    config = payload.get("tokenizer_config")
+    if config is None:
+        model_config = payload.get("model_config") or {}
+        config = {
+            "type": model_config.get("tokenizer_type", "char"),
+            "name": model_config.get("bpe_name", "cl100k_base"),
+            "vocab_size": model_config.get("vocab_size", 260),
+        }
+    tokenizer_type = config.get("type", "char")
+    if tokenizer_type == "char":
+        return ByteTokenizer(vocab_size=config.get("vocab_size"))
+    return build_tokenizer(
+        type("TokenizerSpec", (), {
+            "tokenizer_type": tokenizer_type,
+            "bpe_name": config.get("name", "cl100k_base"),
+            "vocab_size": config.get("vocab_size"),
+        })()
+    )

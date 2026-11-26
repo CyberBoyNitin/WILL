@@ -1,0 +1,63 @@
+# WILL v4: GPU-ready natural-language + reasoning model.
+# Target ~125M parameters, GQA + RoPE, 2,048-token context, bounded TTT memory.
+profile: custom
+
+model:
+  tokenizer_type: bpe
+  bpe_name: gpt2
+  vocab_size: 50304          # 50,257 GPT-2 BPE ids + 4 reserved WILL control ids
+  hidden_dim: 768
+  n_heads: 12
+  n_kv_heads: 4              # grouped-query attention (3 query heads per KV head)
+  context_layers: 10
+  context_ff_mult: 2.6666666666666665   # d_ff = 2048
+  ff_mult: 4
+  max_seq_len: 2048
+  dropout: 0.0
+  use_rope: true
+  rope_theta: 10000.0
+
+  min_steps: 1
+  max_steps: 4
+  adaptive_inference_steps: 4
+  halt_epsilon: 0.05
+
+  memory_kind: ttt_linear    # exact ridge consolidation -> high-confidence recall
+  memory_dim: 768            # slot_dim, tied to token embeddings for logit skip
+  slot_dim: 768
+  num_slots: 64
+  memory_token_dim: 128
+  memory_hidden_mult: 1      # fast state = [768, 768] f32 ~ 2.36 MB (< 4.2 MB budget)
+  memory_inner_steps: 1
+  memory_ridge: 1e-5
+  memory_decay: 0.02
+  memory_decay_rate: 0.98
+  memory_slots: 64
+  memory_logit_skip: true
+  memory_logit_scale: 20.0
+  memory_lexical_scale: 1.0
+  memory_halt_trigger: true
+  memory_confidence_threshold: 0.85
+  tie_embeddings: true           # share input/output embeddings (~39M saved)
+
+training:
+  task: lm
+  train_size: 20000
+  val_size: 1000
+  test_size: 1000
+  epochs: 3
+  batch_size: 16
+  lr: 3e-4
+  weight_decay: 0.01
+  grad_clip: 1.0
+  optimizer: adamw
+  scheduler: cosine
+  warmup_steps: 100
+  precision: auto
+  mode: adaptive_soft
+  seed: 1337
+  checkpoint_name: will-125m-v4
+  profile: custom
+
+server:
+  device: auto

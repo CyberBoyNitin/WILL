@@ -17,7 +17,7 @@ from backend.engine.metrics import (
     process_rss_mb,
 )
 from backend.engine.model import WILLModel
-from backend.engine.tokenizer import BOS_ID, SEP_ID, ByteTokenizer
+from backend.engine.tokenizer import BOS_ID, SEP_ID, ByteTokenizer, build_tokenizer
 from backend.memory.document_ingestion import DocumentIngestion
 from backend.memory.fast_memory import FastWeightMemory
 from backend.memory.memory_manager import MemoryManager
@@ -65,7 +65,7 @@ class WILLForCausalLM:
         if memory_dir is not None:
             cfg.server.memory_dir = str(memory_dir)
         self.cfg = cfg
-        self.tokenizer = tokenizer or ByteTokenizer()
+        self.tokenizer = tokenizer or build_tokenizer(cfg.model)
         self.payload = payload or {}
         self._lock = threading.RLock()
 
@@ -77,6 +77,12 @@ class WILLForCausalLM:
                     path, device=resolve_device(device)
                 )
                 self.payload = loaded_payload
+                if tokenizer is None:
+                    from backend.training.checkpoints import (
+                        load_tokenizer_for_checkpoint,
+                    )
+
+                    self.tokenizer = load_tokenizer_for_checkpoint(loaded_payload)
                 self.checkpoint_id = resolved
             else:
                 model = WILLModel(self.cfg.model)
@@ -367,6 +373,24 @@ class WILLForCausalLM:
             session_id, text, self.memory_manager, filename=filename
         )
         consolidation = None
+        unstructured = None
+        if getattr(self.model.cfg, "tokenizer_type", "char") == "bpe":
+            # v4: absorb raw prose directly into bounded sequential fast
+            # weights, in addition to the legacy chunk/BM25 ingestion above.
+            from backend.memory.slot_memory import absorb_documents
+
+            session = self.memory_manager.get_session(session_id)
+            session.state = absorb_documents(
+                self.model,
+                self.tokenizer,
+                [text],
+                state=session.state,
+            )
+            self.memory_manager.save_session(session_id)
+            unstructured = {
+                "state_bytes": int(session.state.state_bytes()),
+                "slots": int(self.model.cfg.num_slots or self.model.cfg.memory_slots),
+            }
         if consolidate:
             consolidation = self.memory_manager.consolidate_session(session_id)
         session = self.memory_manager.get_session(session_id)
@@ -389,6 +413,7 @@ class WILLForCausalLM:
             "state_bytes": int(result.get("state_bytes", 0)),
             "adapt_seconds": result.get("adapt_seconds"),
             "consolidation": consolidation,
+            "unstructured": unstructured,
         }
 
     def query(

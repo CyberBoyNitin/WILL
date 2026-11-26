@@ -12,7 +12,7 @@ import torch
 from backend.config import AppConfig, ModelConfig, TrainingConfig
 from backend.engine.metrics import count_parameters, module_breakdown
 from backend.engine.model import WILLModel
-from backend.engine.tokenizer import ByteTokenizer
+from backend.engine.tokenizer import ByteTokenizer, build_tokenizer
 from backend.memory.document_ingestion import DocumentIngestion, Document, load_document
 from backend.memory.fast_memory import FastWeightMemory
 from backend.memory.memory_manager import MemoryManager, MemorySession
@@ -37,7 +37,8 @@ class ModelService:
     def __init__(self, cfg: AppConfig) -> None:
         self.cfg = cfg
         self.device = resolve_device(cfg.server.device)
-        self.tokenizer = ByteTokenizer()
+        # ``tokenizer_type`` defaults to ``char`` for every legacy checkpoint.
+        self.tokenizer = build_tokenizer(self.cfg.model)
         self._cache: OrderedDict[str, tuple[WILLModel, dict[str, Any]]] = OrderedDict()
         self._lock = threading.RLock()
         metas = list_checkpoints(cfg.server.checkpoint_dir)

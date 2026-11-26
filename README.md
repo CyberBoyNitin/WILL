@@ -9,6 +9,8 @@ WILL is a compact PyTorch research architecture that couples:
 3. **Cosine-Gated Logit Skip** — a high-confidence retrieval path that adds retrieved token similarities directly to the LM logits;
 4. **Right-to-Left Carry Scratchpad** — for two-digit arithmetic, the model emits raw column sums from right to left, then splits each sum into digit + carry before assembling the answer.
 
+**WILL v4** (`configs/will_125m_v4.yaml`) scales this design to ~124M parameters with a GPT-2 BPE tokenizer, grouped-query attention, RoPE, 2,048-token context, CUDA bf16/fp16 autocast, and bounded document absorption from raw unstructured paragraphs. The v3 checkpoint and every `/v1` schema remain backward compatible.
+
 Everything in this repository is executed code: checkpoints, held-out benchmarks, API responses and telemetry. No simulated accuracy, no power measurements, no CUDA claims.
 
 ---
@@ -33,10 +35,21 @@ python -m pytest -q
 | 8M v1 | `will-8m-synergy-v1` | 8,044,904 | 80.0% @ depth 1.268 | 13.0% @ depth 1.891 | 3.3% | `will2m_eval-0b08da74f4e2` |
 | 2M v2 | `will-2m-synergy-v2` | 2,014,080 | **100.0% @ depth 1.000** | 24.0% @ depth 4.000 | **100.0% @ depth 1.000** | `will2m_eval-0b08da74f4e2` |
 | 2M v3 | `will-2m-synergy-v3` | 2,014,080 | **100.0% @ depth 1.000** | **100.0% @ depth 3.000** | **100.0% @ depth 1.000** | `will2m_eval-19aab69990b6` |
+| 125M v4 | `will-125m-v4` | ~123.9M | pipeline ready | pipeline ready | pipeline ready | not trained yet (GPU run required) |
 
 The v2/v3 rows are measured with the same harness: 5 warmups, 50 timed runs, CPU / 2 threads, Test 3 batch 16, Test 6 all 30 questions in one call. The 581K row uses the earlier v4 lead-eval harness and is included as the historical starting point; its report ID is listed so the protocol difference is auditable.
 
 ---
+
+## WILL v4 architecture
+
+- **Tokenizer:** GPT-2 BPE via `tiktoken` (50,304 ids including 4 reserved WILL control tokens). If `tiktoken` or its cache is unavailable, `build_tokenizer()` cleanly falls back to the byte-level tokenizer without changing the API.
+- **Attention:** SDPA with grouped-query attention (12 query heads / 4 KV heads) and rotary position embeddings; 2,048-token contexts on CUDA with `bfloat16` when supported and `float16` on T4.
+- **Bounded document memory:** `absorb_documents()` splits prose into sentences, maps each entity to a record key, stores its predicate as sequential token-embedding values, and consolidates into a fixed `[768, 768]` fast-weight matrix (~2.36 MB, below the 4.2 MB budget). Older records are evicted by a learnable decay parameter, and slot signs keep record components orthogonal.
+- **Early halt:** cosine-gated logit skip is augmented with `memory_halt_trigger`; a high-confidence fact recall collapses adaptive depth to 1.
+- **Devices:** `will_engine.resolve_device` / `autocast_for` give one code path for CPU, T4 and modern GPUs.
+
+The 125M checkpoint is **not yet published**: no accuracy or latency numbers are claimed for it. Use the Colab/Kaggle notebook or the training script to produce them.
 
 ## Architecture
 
@@ -142,15 +155,21 @@ python experiments/lead_eval/eval_will2m.py
 
 # Verify every published number
 python scripts/verify_benchmarks.py
+
+# WILL v4: GPU-ready training + evaluation (Colab T4 / Kaggle / local CPU smoke)
+python scripts/train_will_v4.py --smoke --steps-per-stage 2 --batch 2 --threads 2
+python experiments/lead_eval/eval_v4.py --smoke --runs 3
+python scripts/train_will_v4.py --device auto --steps-per-stage 2000
+python experiments/lead_eval/eval_v4.py --checkpoint will-125m-v4 --runs 20
 ```
 
-Checkpoints are gitignored; the scripts above regenerate them deterministically from seed 1337.
+The v4 notebook `notebooks/WILL_v4_Colab_GPU.ipynb` runs the same commands in Colab. Checkpoints are gitignored; the scripts above regenerate them deterministically from seed 1337.
 
 ---
 
 ## Honest limitations
 
-- Evidence is on synthetic byte-level arithmetic and synthetic memory replay, not general language ability.
+- Evidence is on synthetic byte-level arithmetic and synthetic memory replay, not general language ability. The v4 pipeline is ready for real text, but no 125M NLP result is claimed until the GPU run completes.
 - Test 3 Hard reached 100% only after the right-to-left column chain and a dedicated depth-3 adaptation; the earlier direct-answer 2M checkpoint was 24%.
 - p50 under 150 ms is met for Easy (42 ms) and warm memory (125 ms); the chained hard decoder is ~300 ms on this 4-core CPU.
 - `torch.compile` could not be used (`cl` compiler unavailable); no GPU/CUDA or energy result is claimed.
